@@ -1,2 +1,2 @@
-mod vote_factory;
-mod vote;
+mod dao;
+mod proposal;
