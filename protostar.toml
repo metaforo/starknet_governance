@@ -2,4 +2,4 @@
 protostar-version = "0.13.0"
 
 [contracts]
-vote_factory = ["src"]
+dao = ["src"]
