@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"beego/controllers"
+	"starknet_beego/controllers"
 
 	beego "github.com/beego/beego/v2/server/web"
 )

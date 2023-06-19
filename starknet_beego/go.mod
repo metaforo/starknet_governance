@@ -1,4 +1,4 @@
-module beego
+module starknet_beego
 
 go 1.19
 

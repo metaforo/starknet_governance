@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"beego/models"
+	"starknet_beego/models"
 	"encoding/json"
 
 	beego "github.com/beego/beego/v2/server/web"
