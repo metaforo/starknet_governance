@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import Chat from './components/Chat';
+import Starknet from './components/Starknet';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
@@ -17,8 +17,8 @@ const routes = [
         // errorElement: <ErrorPage />,
         children: [
             {
-                path: "/chat",
-                element: <Chat />,
+                path: "/stark",
+                element: <Starknet />,
             },
         ],
     },
