@@ -38,6 +38,7 @@ require (
 )
 
 require (
+	github.com/beego/beego v1.12.12
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/everFinance/goar v1.5.5

@@ -27,6 +27,11 @@ func (this *ARController) UploadToArweave() {
 	// r_post_id := this.GetString("post_id")
 	r_data := this.GetString("data")
 
+	if len(r_data) <= 0 {
+		this.Data["json"] = APIError(41020) // data can't be empty.
+		this.ServeJSON()
+	}
+
 	arweave_keyfile_path, _ := config.String("arweave_keyfile_path")
 
 	wallet, err := goar.NewWalletFromPath(arweave_keyfile_path, "https://arweave.net")

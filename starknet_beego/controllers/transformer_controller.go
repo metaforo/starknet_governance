@@ -18,6 +18,7 @@ var APIErrorCodes = map[int]string{
 	40002: "JWT error",
 	40003: "Please login",
 
+	41020: "data is required.",
 	41021: "Arweave upload error.",
 }
 
