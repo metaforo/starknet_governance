@@ -2,8 +2,13 @@
 mod Dao {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
+    use starknet::info::get_block_timestamp;
+    use starknet::info::get_block_number;
     use array::ArrayTrait;
+    use option::OptionTrait;
+    use box::BoxTrait;
     use starknet_governance::contract::proposal::Proposal;
+    use traits::{Into, TryInto};
 
     struct Storage {
         // ----
@@ -43,26 +48,23 @@ mod Dao {
     const VOTER_STATUS_CAN_VOTE: u8 = 1_u8;
     const VOTER_STATUS_HAS_VOTED: u8 = 2_u8;
 
+    const VOTING_STRATEGY_DEFAULT: u8 = 0_u8;
+    const VOTING_STRATEGY_WHITE_LIST: u8 = 1_u8;
+    const VOTING_STRATEGY_ERC_721: u8 = 2_u8;
+    // const VOTING_STRATEGY_DEFAULT: u8 = 3_u8;
+
     #[constructor]
     fn constructor(owner: ContractAddress) {
         dao_owner::write(owner);
         proposal_id_generator::write(0_u32);
     }
 
-    // #[view]
-    // fn show_status(proposal_id: u32, voter: ContractAddress) -> u8 {
-    //     proposal_option_map::read((proposal_id, voter))
-    // }
+    // region ---- event ----
 
-    // #[view]
-    // fn show_status_exist(proposal_id: u32, voter: ContractAddress) -> bool {
-    //     proposal_option_map::have((proposal_id, voter))
-    // }
+    #[event]
+    fn NewProposalCreated(operator: ContractAddress, proposal_id: u32, metadata_url: felt252) {}
 
-    // #[external]
-    // fn change_status(proposal_id: u32, voter: ContractAddress) {
-    //     proposal_option_map::write((proposal_id, voter), 1);
-    // }
+    // endregion ---- event ----
 
     // region ---- Owner's Functions ----
     #[external]
@@ -84,8 +86,19 @@ mod Dao {
     // endregion ---- Owner's Functions ----
 
     // region ---- Admin's Functions ----
+    #[view]
+    fn can_create_new_proposal(caller: ContractAddress) -> bool {
+        let is_admin: bool = admin_list::read(caller);
+        is_admin
+    }
+
     #[external]
-    fn create_new_proposal(option_count: u8, metadata_url: felt252) -> u32 {
+    fn create_new_proposal(
+        option_count: u8,
+        metadata_url: felt252,
+        voting_end_block: u64,
+        voter_list: Array<ContractAddress>,
+    ) {
         // check user permission
         let caller: ContractAddress = get_caller_address();
         _check_admin_permission(caller);
@@ -93,16 +106,35 @@ mod Dao {
         // check parameter 
         assert(option_count > 1 & option_count < 100, 'OPTION_COUNT_SHOULD_IN_2_TO_99');
 
+        let current_block = show_block_number();
+        assert(voting_end_block < (current_block + 20), 'END_BLOCK_SIZE_ERROR');
+
         // create new proposal
         let proposal_id = proposal_id_generator::read() + 1;
         proposal_id_generator::write(proposal_id);
 
         let new_proposal = Proposal {
-            id: proposal_id, creator: caller, metadata_url: metadata_url, option_count: option_count
+            id: proposal_id,
+            creator: caller,
+            metadata_url: metadata_url,
+            option_count: option_count,
+            voting_end_block: voting_end_block,
+            voting_strategy: VOTING_STRATEGY_DEFAULT,
         };
         proposal_list::write(proposal_id, new_proposal);
 
-        proposal_id
+        // save voter list
+        let mut i: usize = 0;
+        loop {
+            if i >= voter_list.len() {
+                break ();
+            }
+            let voter = voter_list.get(i).unwrap().unbox();
+            voter_status_map::write((proposal_id, *voter), VOTER_STATUS_CAN_VOTE);
+            i = i + 1;
+        };
+
+        NewProposalCreated(caller, proposal_id, metadata_url);
     }
 
     #[external]
@@ -133,23 +165,6 @@ mod Dao {
         voter_status_map::write((proposal_id, voter), VOTER_STATUS_NO_PERMISSION);
     }
 
-    #[external]
-    fn start_proposal(proposal_id: u32) {
-        // check user permission
-        let caller: ContractAddress = get_caller_address();
-        _check_admin_permission(caller);
-    // TODO: can not do `vote` before proposal start
-    // TODO: can not do `add_voter` or `delete_voter` after proposal start
-    }
-
-    #[external]
-    fn end_proposal(proposal_id: u32) {
-        // check user permission
-        let caller: ContractAddress = get_caller_address();
-        _check_admin_permission(caller);
-    // TODO: can not do `vote` after proposal end
-    }
-
     // endregion ---- Admin's Functions ----
 
     // region ---- Voter's Functions ----
@@ -158,6 +173,8 @@ mod Dao {
         // check proposal existed && option is current
         let proposal: Proposal = proposal_list::read(proposal_id);
         assert(option_id > 0 & option_id <= proposal.option_count, 'WRONG_OPTION');
+
+        assert(!_proposal_closed(proposal_id), 'VOTE_CLOSED');
 
         // check voter permission
         let caller: ContractAddress = get_caller_address();
@@ -171,13 +188,25 @@ mod Dao {
     }
 
     #[view]
-    fn show_my_vote_history(proposal_id: u32) -> u8 {
-        let caller: ContractAddress = get_caller_address();
-        proposal_option_map::read((proposal_id, caller))
+    fn show_vote_history(proposal_id: u32, address: ContractAddress) -> u8 {
+        proposal_option_map::read((proposal_id, address))
     }
     // endregion ---- Voter's Functions ----
 
     // region ---- Public Functions ----
+
+    #[view]
+    fn get_proposal(proposal_id: u32) -> Array<felt252> {
+        let proposal: Proposal = proposal_list::read(proposal_id);
+        let mut result = ArrayTrait::<felt252>::new();
+        result.append(proposal.id.into());
+        result.append(proposal.creator.into());
+        result.append(proposal.metadata_url);
+        result.append(proposal.option_count.into());
+        result.append(bool_to_felt252(_proposal_closed(proposal_id)));
+        result
+    }
+
     #[view]
     fn show_vote_result(proposal_id: u32) -> Array<u8> {
         let proposal: Proposal = proposal_list::read(proposal_id);
@@ -192,11 +221,20 @@ mod Dao {
         };
         result
     }
+
+    #[view]
+    fn show_block_timestamp() -> u64 {
+        get_block_timestamp()
+    }
+
+    #[view]
+    fn show_block_number() -> u64 {
+        get_block_number()
+    }
+
     // endregion ---- Public Functions ----
 
-    // ----
-    // internal
-    // ----
+    // region ---- internal functions ----
 
     fn _check_owner_permission(address: ContractAddress) {
         let is_owner: bool = address == dao_owner::read();
@@ -213,4 +251,13 @@ mod Dao {
         assert(current_voter_status != VOTER_STATUS_HAS_VOTED, 'HAS_VOTED');
         assert(current_voter_status == VOTER_STATUS_CAN_VOTE, 'NO_PERMISSION');
     }
+
+    fn _proposal_closed(proposal_id: u32) -> bool {
+        let proposal: Proposal = proposal_list::read(proposal_id);
+        let end_block = proposal.voting_end_block;
+        let current_block = show_block_number();
+
+        end_block > 0 & current_block > end_block
+    }
+// endregion ---- internal functions ----
 }
