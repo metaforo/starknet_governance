@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	ns := beego.NewNamespace("/v1",
+	ns := beego.NewNamespace("/api",
 		beego.NSNamespace("/object",
 			beego.NSInclude(
 				&controllers.ObjectController{},
@@ -25,6 +25,8 @@ func init() {
 				&controllers.UserController{},
 			),
 		),
+
+		beego.NSRouter("/arweave/upload", &controllers.ARController{}, "post:UploadToArweave"),
 	)
 	beego.AddNamespace(ns)
 }
