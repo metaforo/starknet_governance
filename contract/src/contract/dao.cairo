@@ -36,6 +36,8 @@ mod Dao {
         // But this map consumes too much on-chain storage, so we plan to move this function offline.
         // all_voters: LegacyMap::<ContractAddress, bool>,
 
+        // (address + metadata_url) -> proposal_id
+        proposal_id_map: LegacyMap::<(ContractAddress, felt252), u32>,
         // (proposal_id + address) -> voter_status
         voter_status_map: LegacyMap::<(u32, ContractAddress), u8>,
         // (proposal_id + address) -> proposal_option
@@ -98,7 +100,7 @@ mod Dao {
         metadata_url: felt252,
         voting_end_block: u64,
         voter_list: Array<ContractAddress>,
-    ) {
+    ) -> u32 {
         // check user permission
         let caller: ContractAddress = get_caller_address();
         _check_admin_permission(caller);
@@ -107,7 +109,7 @@ mod Dao {
         assert(option_count > 1 & option_count < 100, 'OPTION_COUNT_SHOULD_IN_2_TO_99');
 
         let current_block = show_block_number();
-        assert(voting_end_block < (current_block + 20), 'END_BLOCK_SIZE_ERROR');
+        assert(voting_end_block > (current_block + 20), 'END_BLOCK_SIZE_ERROR');
 
         // create new proposal
         let proposal_id = proposal_id_generator::read() + 1;
@@ -122,6 +124,7 @@ mod Dao {
             voting_strategy: VOTING_STRATEGY_DEFAULT,
         };
         proposal_list::write(proposal_id, new_proposal);
+        proposal_id_map::write((caller, metadata_url), proposal_id);
 
         // save voter list
         let mut i: usize = 0;
@@ -135,6 +138,13 @@ mod Dao {
         };
 
         NewProposalCreated(caller, proposal_id, metadata_url);
+
+        proposal_id
+    }
+
+    #[view]
+    fn get_proposal_id(caller: ContractAddress, metadata_url: felt252) -> u32 {
+        proposal_id_map::read((caller, metadata_url))
     }
 
     #[external]
