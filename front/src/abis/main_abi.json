@@ -12,28 +12,6 @@
     "state_mutability": "external"
   },
   {
-    "name": "show_block_timestamp",
-    "type": "function",
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "core::integer::u64"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
-    "name": "show_block_number",
-    "type": "function",
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "core::integer::u64"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
     "name": "add_admin",
     "type": "function",
     "inputs": [
@@ -60,13 +38,18 @@
   {
     "name": "can_create_new_proposal",
     "type": "function",
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ],
     "outputs": [
       {
         "type": "core::bool"
       }
     ],
-    "state_mutability": "external"
+    "state_mutability": "view"
   },
   {
     "name": "create_new_proposal",
@@ -79,6 +62,30 @@
       {
         "name": "metadata_url",
         "type": "core::felt252"
+      },
+      {
+        "name": "voting_end_block",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "voter_list",
+        "type": "core::array::Array::<core::starknet::contract_address::ContractAddress>"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "name": "get_proposal_id",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "metadata_url",
+        "type": "core::felt252"
       }
     ],
     "outputs": [
@@ -86,7 +93,7 @@
         "type": "core::integer::u32"
       }
     ],
-    "state_mutability": "external"
+    "state_mutability": "view"
   },
   {
     "name": "add_voter",
@@ -115,30 +122,6 @@
       {
         "name": "voter",
         "type": "core::starknet::contract_address::ContractAddress"
-      }
-    ],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "name": "start_proposal",
-    "type": "function",
-    "inputs": [
-      {
-        "name": "proposal_id",
-        "type": "core::integer::u32"
-      }
-    ],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "name": "end_proposal",
-    "type": "function",
-    "inputs": [
-      {
-        "name": "proposal_id",
-        "type": "core::integer::u32"
       }
     ],
     "outputs": [],
@@ -181,6 +164,22 @@
     "state_mutability": "view"
   },
   {
+    "name": "get_proposal",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "proposal_id",
+        "type": "core::integer::u32"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::array::Array::<core::felt252>"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
     "name": "show_vote_result",
     "type": "function",
     "inputs": [
@@ -197,30 +196,43 @@
     "state_mutability": "view"
   },
   {
-    "name": "test_no_param",
+    "name": "show_block_timestamp",
     "type": "function",
     "inputs": [],
     "outputs": [
       {
-        "type": "core::felt252"
+        "type": "core::integer::u64"
       }
     ],
     "state_mutability": "view"
   },
   {
-    "name": "test_param",
+    "name": "show_block_number",
     "type": "function",
-    "inputs": [
-      {
-        "name": "p",
-        "type": "core::felt252"
-      }
-    ],
+    "inputs": [],
     "outputs": [
       {
-        "type": "core::felt252"
+        "type": "core::integer::u64"
       }
     ],
     "state_mutability": "view"
+  },
+  {
+    "name": "NewProposalCreated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "proposal_id",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "metadata_url",
+        "type": "core::felt252"
+      }
+    ]
   }
 ]

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { connect, disconnect } from '@argent/get-starknet'
 import { useContractRead, useContract } from "@starknet-react/core";
-import { Provider, Contract, json } from "starknet";
+import {Provider, Contract, json, CommonTransactionReceiptResponse, CallData} from "starknet";
 
 
 import contractAbi from "../abis/main_abi.json";
 
-const contractAddress = "0x0686c99eb8a7846371fdf6c1f5671c1f8460a50348b1a393bd934b64cd8224f0";
+const contractAddress = "0x03ae0619395c0b12974ae73a55bbf80649531d23ef64682a5f9aeda9c58d9e19";
 
 
 export default function Starknet() {
@@ -256,7 +256,7 @@ export default function Starknet() {
 
 
 
-    const connectWallet = async () => {
+    const connectWallets = async () => {
 
         await disconnect();
 
@@ -286,15 +286,20 @@ export default function Starknet() {
         );
     }
 
-    async function showvote(proposalId){
+
+
+
+
+    async function showVoteResult(proposalId){
 
         try{
-            connectWallets().then(()=>{
+            connectWallet().then(()=>{
                 // initialize contract using abi, address and provider
                 const contract = new Contract(contractAbi, contractAddress, provider);
                 // make contract call
                 contract.show_vote_result(proposalId).then((result)=>{
-                    console.log(result)
+                    console.log(result);
+
                 });
             });
 
@@ -305,13 +310,61 @@ export default function Starknet() {
     }
 
 
+    async function createProposal(optionCount,metadataUrl){
+        try{
+
+
+            const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
+
+
+            await connectWallet();
+
+            const contract = new Contract(contractAbi, contractAddress, provider);
+
+            const resp = await  contract.create_new_proposal(optionCount,metadataUrl,821353,voter_list);
+
+            await  provider.waitForTransaction(resp.transaction_hash)
+
+            contract.get_proposal_id("0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d",metadataUrl).then((res)=>{
+                console.log(res)
+            })
+
+            // connectWallet().then(()=>{
+            //     // initialize contract using abi, address and provider
+            //     const contract = new Contract(contractAbi, contractAddress, provider);
+            //     // make contract call
+            //
+            //     contract.create_new_proposal(optionCount,metadataUrl,821353,["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"]).then((result)=>{
+            //         provider.waitForTransaction(result.transaction_hash).then((data)=>{
+            //
+            //             contract.get_proposal_id("0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d",metadataUrl).then((res)=>{
+            //
+            //                 console.log(res)
+            //             })
+            //
+            //         });
+            //     });
+            //
+            // });
+
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
+
+
+
+
+
     async function connecttest() {
         console.log(2222);
         await connect();
     }
 
 
-    const connectWallets = async() => {
+    const connectWallet = async() => {
         try{
             // let the user choose a starknet wallet
             const starknet = await connect()
@@ -341,8 +394,16 @@ export default function Starknet() {
                     connect
                 </button>
 
-                <button onClick={()=>showvote(1)}>
+                <button onClick={()=>showVoteResult(1)}>
                     showVote
+                </button>
+
+                <button onClick={()=>showVoteResult(1)}>
+                    showVote
+                    </button>
+
+                    <button onClick={()=>createProposal(2,"abc")}>
+                create
                 </button>
 
 
