@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Starknet from './components/Starknet';
+import CreatePoll from "./components/CreatePoll";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
@@ -19,6 +20,14 @@ const routes = [
             {
                 path: "/stark",
                 element: <Starknet />,
+            },
+            {
+                path: "/create",
+                element: <CreatePoll />,
+            },
+            {
+                path: "/view",
+                element: <ViewPoll />,
             },
         ],
     },
