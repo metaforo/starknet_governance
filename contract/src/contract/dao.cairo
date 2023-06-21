@@ -100,10 +100,7 @@ mod Dao {
 
     #[external]
     fn create_new_proposal(
-        option_count: u8,
-        metadata_url: felt252,
-        voting_end_block: u64,
-        voter_list: Array<ContractAddress>,
+        option_count: u8, metadata_url: felt252, voting_end_block: u64, voter_list: Array<felt252>, 
     ) -> u32 {
         // check user permission
         let caller: ContractAddress = get_caller_address();
@@ -136,8 +133,9 @@ mod Dao {
             if i >= voter_list.len() {
                 break ();
             }
-            let voter = voter_list.get(i).unwrap().unbox();
-            voter_status_map::write((proposal_id, *voter), VOTER_STATUS_CAN_VOTE);
+            let voter_felt252 = voter_list.get(i).unwrap().unbox();
+            let voter = starknet::contract_address_try_from_felt252(*voter_felt252).unwrap();
+            voter_status_map::write((proposal_id, voter), VOTER_STATUS_CAN_VOTE);
             i = i + 1;
         };
 
@@ -227,7 +225,6 @@ mod Dao {
         // check proposal existed && option is current
         let proposal: Proposal = proposal_list::read(proposal_id);
         assert(option_id > 0 & option_id <= proposal.option_count, 'WRONG_OPTION');
-
         assert(!_proposal_closed(proposal_id), 'VOTE_CLOSED');
 
         // check voter permission
