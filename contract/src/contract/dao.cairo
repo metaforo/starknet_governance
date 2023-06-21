@@ -5,6 +5,7 @@ mod Dao {
     use starknet::info::get_block_timestamp;
     use starknet::info::get_block_number;
     use array::ArrayTrait;
+    use array::SpanTrait;
     use option::OptionTrait;
     use box::BoxTrait;
     use starknet_governance::contract::proposal::Proposal;
@@ -44,6 +45,10 @@ mod Dao {
         proposal_option_map: LegacyMap::<(u32, ContractAddress), u8>,
         // (proposal_id, option_id) -> count
         proposal_result: LegacyMap::<(u32, u8), u8>,
+        // proposal_id -> contract_address
+        proposal_contract_address_config: LegacyMap::<u32, ContractAddress>,
+        // proposal_id -> selector
+        proposal_selector_config: LegacyMap::<u32, felt252>,
     }
 
     const VOTER_STATUS_NO_PERMISSION: u8 = 0_u8;
@@ -53,7 +58,6 @@ mod Dao {
     const VOTING_STRATEGY_DEFAULT: u8 = 0_u8;
     const VOTING_STRATEGY_WHITE_LIST: u8 = 1_u8;
     const VOTING_STRATEGY_ERC_721: u8 = 2_u8;
-    // const VOTING_STRATEGY_DEFAULT: u8 = 3_u8;
 
     #[constructor]
     fn constructor(owner: ContractAddress) {
@@ -109,7 +113,7 @@ mod Dao {
         assert(option_count > 1 & option_count < 100, 'OPTION_COUNT_SHOULD_IN_2_TO_99');
 
         let current_block = show_block_number();
-        assert(voting_end_block > (current_block + 20), 'END_BLOCK_SIZE_ERROR');
+        // assert(voting_end_block > (current_block + 20), 'END_BLOCK_SIZE_ERROR');
 
         // create new proposal
         let proposal_id = proposal_id_generator::read() + 1;
@@ -121,7 +125,7 @@ mod Dao {
             metadata_url: metadata_url,
             option_count: option_count,
             voting_end_block: voting_end_block,
-            voting_strategy: VOTING_STRATEGY_DEFAULT,
+            voting_strategy: VOTING_STRATEGY_WHITE_LIST,
         };
         proposal_list::write(proposal_id, new_proposal);
         proposal_id_map::write((caller, metadata_url), proposal_id);
@@ -136,6 +140,46 @@ mod Dao {
             voter_status_map::write((proposal_id, *voter), VOTER_STATUS_CAN_VOTE);
             i = i + 1;
         };
+
+        NewProposalCreated(caller, proposal_id, metadata_url);
+
+        proposal_id
+    }
+
+    #[external]
+    fn create_new_proposal_nft(
+        option_count: u8,
+        metadata_url: felt252,
+        voting_end_block: u64,
+        contract_address: ContractAddress,
+        selector: ContractAddress,
+    ) -> u32 {
+        // check user permission
+        let caller: ContractAddress = get_caller_address();
+        _check_admin_permission(caller);
+
+        // check parameter 
+        assert(option_count > 1 & option_count < 100, 'OPTION_COUNT_SHOULD_IN_2_TO_99');
+
+        let current_block = show_block_number();
+        // assert(voting_end_block > (current_block + 20), 'END_BLOCK_SIZE_ERROR');
+
+        // create new proposal
+        let proposal_id = proposal_id_generator::read() + 1;
+        proposal_id_generator::write(proposal_id);
+
+        let new_proposal = Proposal {
+            id: proposal_id,
+            creator: caller,
+            metadata_url: metadata_url,
+            option_count: option_count,
+            voting_end_block: voting_end_block,
+            voting_strategy: VOTING_STRATEGY_ERC_721,
+        };
+        proposal_list::write(proposal_id, new_proposal);
+        proposal_id_map::write((caller, metadata_url), proposal_id);
+        proposal_contract_address_config::write(proposal_id, contract_address);
+        proposal_selector_config::write(proposal_id, selector.into());
 
         NewProposalCreated(caller, proposal_id, metadata_url);
 
@@ -188,7 +232,7 @@ mod Dao {
 
         // check voter permission
         let caller: ContractAddress = get_caller_address();
-        _check_voter_permission(proposal_id, caller);
+        _check_voter_permission(proposal, caller);
 
         // do vote
         voter_status_map::write((proposal_id, caller), VOTER_STATUS_HAS_VOTED);
@@ -256,10 +300,17 @@ mod Dao {
         assert(is_admin, 'USER_NOT_ADMIN');
     }
 
-    fn _check_voter_permission(proposal_id: u32, address: ContractAddress) {
-        let current_voter_status = voter_status_map::read((proposal_id, address));
+    fn _check_voter_permission(proposal: Proposal, address: ContractAddress) {
+        let current_voter_status = voter_status_map::read((proposal.id, address));
         assert(current_voter_status != VOTER_STATUS_HAS_VOTED, 'HAS_VOTED');
-        assert(current_voter_status == VOTER_STATUS_CAN_VOTE, 'NO_PERMISSION');
+
+        if proposal.voting_strategy == VOTING_STRATEGY_ERC_721 {
+            let contract_address = proposal_contract_address_config::read(proposal.id);
+            let selector = proposal_selector_config::read(proposal.id);
+            assert(_check_balance(address, contract_address, selector), 'NO_PERMISSION');
+        } else {
+            assert(current_voter_status == VOTER_STATUS_CAN_VOTE, 'NO_PERMISSION');
+        }
     }
 
     fn _proposal_closed(proposal_id: u32) -> bool {
@@ -269,5 +320,20 @@ mod Dao {
 
         end_block > 0 & current_block > end_block
     }
-// endregion ---- internal functions ----
+
+    fn _check_balance(
+        address: ContractAddress, contract: ContractAddress, selector: felt252
+    ) -> bool {
+        let mut calldata = ArrayTrait::new();
+        calldata.append(address.into());
+
+        let mut spanResult = starknet::call_contract_syscall(
+            address: contract, entry_point_selector: selector, calldata: calldata.span(), 
+        )
+            .unwrap_syscall();
+        let felt_result = *(spanResult.pop_front().unwrap());
+
+        felt_result.into() > 0_u256
+    }
+    // endregion ---- internal functions ----
 }
