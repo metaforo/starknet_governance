@@ -1,0 +1,157 @@
+body{
+  font-family: 'Inter';
+}
+
+.create_poll{
+  margin: auto;
+  margin-top: 48px;
+  box-sizing: border-box;
+
+  /* Auto layout */
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px 24px 40px;
+
+  width: 960px;
+
+  background: #FFFFFF;
+  box-shadow: 0px 4px 8px #E5E6E8;
+  border-radius: 16px;
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.create_poll{
+  display: flex;
+}
+
+.create_poll_title_div{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.create_poll_title{
+
+
+  width: 129px;
+  height: 24px;
+
+
+  font-style: normal;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+
+  color: #140845;
+
+
+  /* Inside auto layout */
+
+}
+
+.connect_wallet{
+  width: 106px;
+  height: 17px;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 17px;
+  /* identical to box height */
+
+  text-align: center;
+
+  color: #7845F6;
+
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.create_title{
+  height: 17px;
+
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 17px;
+  /* identical to box height */
+
+
+  color: #140845;
+
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+
+
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.add_text{
+
+  height: 17px;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  /* identical to box height */
+
+  color: #7845F6;
+
+}
+
+.add_block{
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.option_div{
+  position: relative;
+}
+
+.option_x{
+  position: absolute;
+  width: 14px;
+  right: 20px;
+  top: 20px;
+  cursor: pointer;
+}
+
+.submit{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+  gap: 8px;
+
+  width: 144px;
+  height: 44px;
+
+  background: #7845F6;
+  border-radius: 8px;
+
+}
+
+.m-5{
+  margin: 5px 0;
+}
