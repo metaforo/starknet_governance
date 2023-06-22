@@ -23,19 +23,15 @@ mod Dao {
         admin_list: LegacyMap::<ContractAddress, bool>,
         // Proposal Info
         proposal_id_generator: u32,
-        proposal_list: LegacyMap::<u32, Proposal>,
+        // proposal_list: LegacyMap::<u32, Proposal>,
+        proposal_metadata_map: LegacyMap::<u32, felt252>,
+        proposal_creator_map: LegacyMap::<u32, ContractAddress>,
+        proposal_option_count_map: LegacyMap::<u32, u8>,
+        proposal_end_block_map: LegacyMap::<u32, u64>,
+        proposal_startegy_map: LegacyMap::<u32, u8>,
         // ----
         // Proposal Option Info (Shoule move to Proposal struct if LegacyMap can be used in struct)
         // ----
-
-        // anyone who has participated in any proposal. currently not available. 
-        // After the proposal is finished, we can check the score of each option, 
-        // but we cannot find out which addresses have voted for each option separately. 
-        // Through all_voters, we can check which option each address has voted for (or not) 
-        // for this proposal through proposal+voter_address, and then perform a statistics to 
-        // obtain the result of option-> List<address>.
-        // But this map consumes too much on-chain storage, so we plan to move this function offline.
-        // all_voters: LegacyMap::<ContractAddress, bool>,
 
         // (address + metadata_url) -> proposal_id
         proposal_id_map: LegacyMap::<(ContractAddress, felt252), u32>,
@@ -63,6 +59,17 @@ mod Dao {
     fn constructor(owner: ContractAddress) {
         dao_owner::write(owner);
         proposal_id_generator::write(0_u32);
+
+        // let mut i: usize = 0;
+        // loop {
+        //     if i >= admin_list.len() {
+        //         break ();
+        //     }
+        //     let admin = admin_list.get(i).unwrap().unbox();
+        //     admin_list::write(*admin, true);
+        //     i = i + 1;
+        // };
+        admin_list::write(owner, true);
     }
 
     // region ---- event ----
@@ -124,8 +131,13 @@ mod Dao {
             voting_end_block: voting_end_block,
             voting_strategy: VOTING_STRATEGY_WHITE_LIST,
         };
-        proposal_list::write(proposal_id, new_proposal);
-        proposal_id_map::write((caller, metadata_url), proposal_id);
+
+        // proposal_list::write(proposal_id, new_proposal);
+        proposal_metadata_map::write(proposal_id, metadata_url);
+        proposal_creator_map::write(proposal_id, caller);
+        proposal_option_count_map::write(proposal_id, option_count);
+        proposal_end_block_map::write(proposal_id, voting_end_block);
+        proposal_startegy_map::write(proposal_id, VOTING_STRATEGY_WHITE_LIST);
 
         // save voter list
         let mut i: usize = 0;
@@ -174,7 +186,13 @@ mod Dao {
             voting_end_block: voting_end_block,
             voting_strategy: VOTING_STRATEGY_ERC_721,
         };
-        proposal_list::write(proposal_id, new_proposal);
+        // proposal_list::write(proposal_id, new_proposal);
+        proposal_metadata_map::write(proposal_id, metadata_url);
+        proposal_creator_map::write(proposal_id, caller);
+        proposal_option_count_map::write(proposal_id, option_count);
+        proposal_end_block_map::write(proposal_id, voting_end_block);
+        proposal_startegy_map::write(proposal_id, VOTING_STRATEGY_ERC_721);
+
         proposal_id_map::write((caller, metadata_url), proposal_id);
         proposal_contract_address_config::write(proposal_id, contract_address);
         proposal_selector_config::write(proposal_id, selector.into());
@@ -223,13 +241,14 @@ mod Dao {
     #[external]
     fn vote(proposal_id: u32, option_id: u8) {
         // check proposal existed && option is current
-        let proposal: Proposal = proposal_list::read(proposal_id);
-        assert(option_id > 0 & option_id <= proposal.option_count, 'WRONG_OPTION');
+        // let proposal: Proposal = proposal_list::read(proposal_id);
+        let option_count = proposal_option_count_map::read(proposal_id);
+        assert(option_id > 0 & option_id <= option_count, 'WRONG_OPTION');
         assert(!_proposal_closed(proposal_id), 'VOTE_CLOSED');
 
         // check voter permission
         let caller: ContractAddress = get_caller_address();
-        _check_voter_permission(proposal, caller);
+        _check_voter_permission(proposal_id, caller);
 
         // do vote
         voter_status_map::write((proposal_id, caller), VOTER_STATUS_HAS_VOTED);
@@ -248,24 +267,47 @@ mod Dao {
 
     #[view]
     fn get_proposal(proposal_id: u32) -> Array<felt252> {
-        let proposal: Proposal = proposal_list::read(proposal_id);
+        // let proposal: Proposal = proposal_list::read(proposal_id);
         let mut result = ArrayTrait::<felt252>::new();
-        result.append(proposal.id.into());
-        result.append(proposal.creator.into());
-        result.append(proposal.metadata_url);
-        result.append(proposal.option_count.into());
+
+        // result.append(proposal.id.into());
+        // result.append(proposal.creator.into());
+        // result.append(proposal.metadata_url);
+        // result.append(proposal.option_count.into());
+        // result.append(bool_to_felt252(_proposal_closed(proposal_id)));
+
+        result.append(proposal_id.into());
+        result.append(proposal_creator_map::read(proposal_id).into());
+        result.append(proposal_metadata_map::read(proposal_id));
+        result.append(proposal_option_count_map::read(proposal_id).into());
         result.append(bool_to_felt252(_proposal_closed(proposal_id)));
         result
     }
 
     #[view]
+    fn get_proposal_creator(proposal_id: u32) -> ContractAddress {
+        proposal_creator_map::read(proposal_id)
+    }
+
+    #[view]
+    fn get_proposal_metadata(proposal_id: u32) -> felt252 {
+        proposal_metadata_map::read(proposal_id)
+    }
+
+    #[view]
+    fn get_proposal_closed(proposal_id: u32) -> bool {
+        _proposal_closed(proposal_id)
+    }
+
+    #[view]
     fn show_vote_result(proposal_id: u32) -> Array<u8> {
-        let proposal: Proposal = proposal_list::read(proposal_id);
+        // let proposal: Proposal = proposal_list::read(proposal_id);
+        let option_count = proposal_option_count_map::read(proposal_id);
         let mut i: u8 = 1;
         let mut result = ArrayTrait::new();
         loop {
             result.append(proposal_result::read((proposal_id, i)));
-            if i == proposal.option_count {
+            if i == option_count {
                 break ();
             }
             i = i + 1;
@@ -297,13 +339,14 @@ mod Dao {
         assert(is_admin, 'USER_NOT_ADMIN');
     }
 
-    fn _check_voter_permission(proposal: Proposal, address: ContractAddress) {
-        let current_voter_status = voter_status_map::read((proposal.id, address));
+    fn _check_voter_permission(proposal_id: u32, address: ContractAddress) {
+        let current_voter_status = voter_status_map::read((proposal_id, address));
         assert(current_voter_status != VOTER_STATUS_HAS_VOTED, 'HAS_VOTED');
 
-        if proposal.voting_strategy == VOTING_STRATEGY_ERC_721 {
-            let contract_address = proposal_contract_address_config::read(proposal.id);
-            let selector = proposal_selector_config::read(proposal.id);
+        let voting_strategy = proposal_startegy_map::read(proposal_id);
+        if voting_strategy == VOTING_STRATEGY_ERC_721 {
+            let contract_address = proposal_contract_address_config::read(proposal_id);
+            let selector = proposal_selector_config::read(proposal_id);
             assert(_check_balance(address, contract_address, selector), 'NO_PERMISSION');
         } else {
             assert(current_voter_status == VOTER_STATUS_CAN_VOTE, 'NO_PERMISSION');
@@ -311,8 +354,7 @@ mod Dao {
     }
 
     fn _proposal_closed(proposal_id: u32) -> bool {
-        let proposal: Proposal = proposal_list::read(proposal_id);
-        let end_block = proposal.voting_end_block;
+        let end_block = proposal_end_block_map::read(proposal_id);
         let current_block = show_block_number();
 
         end_block > 0 & current_block > end_block
@@ -332,5 +374,5 @@ mod Dao {
 
         felt_result.into() > 0_u256
     }
-    // endregion ---- internal functions ----
+// endregion ---- internal functions ----
 }
