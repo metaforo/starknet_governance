@@ -149,17 +149,17 @@ export default function Starknet() {
 
 
 
-    async function createProposal(optionCount,metadataUrl,votingEndBlock,voterList){
+    async function createProposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList){
         try{
 
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
-            const resp = await contract.create_new_proposal(optionCount,metadataUrl,votingEndBlock,voterList);
+            const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
             console.log(resp.transaction_hash);
             console.log(address)
             await provider.waitForTransaction(resp.transaction_hash);
-            contract.get_proposal_id(address,metadataUrl).then((proposal_id)=>{
+            contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
                 console.log(parseInt(proposal_id))
             })
             // console.log(resp);
@@ -209,7 +209,7 @@ export default function Starknet() {
 
 
 
-                <button onClick={()=>createProposal(2,"abc",999999999,voter_list)}>
+                <button onClick={()=>createProposal(2,"abc","efg",999999999,voter_list)}>
                     create proposal
                 </button>
                 <br/>
