@@ -3,7 +3,7 @@ import { connect } from '@argent/get-starknet'
 import {Contract} from "starknet";
 import contractAbi from "../abis/main_abi.json";
 
-const contractAddress = "0x02a6f38d7fabcacecee58f24dd0110970f914d9c43b997d69a259fb20b2a1bb9";
+const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
 const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
 
 
@@ -209,7 +209,7 @@ export default function Starknet() {
 
 
 
-                <button onClick={()=>createProposal(2,"abc",99999999,voter_list)}>
+                <button onClick={()=>createProposal(2,"abc",999999999,voter_list)}>
                     create proposal
                 </button>
                 <br/>
