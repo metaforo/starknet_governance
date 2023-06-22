@@ -28,7 +28,7 @@ const routes = [
             },
             {
                 path: "/view",
-                element: <ViewPoll />,
+                // element: <ViewPoll />,
             },
         ],
     },
