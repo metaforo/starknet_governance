@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Starknet from './components/Starknet';
 import CreatePoll from "./components/CreatePoll";
+import ViewPoll from "./components/ViewPoll";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 

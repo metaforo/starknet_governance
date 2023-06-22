@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {TextField} from "@mui/material";
+import {TextField , Tab, Box, Tabs, Typography } from "@mui/material";
 
 import "../css/createPoll.css"
 import add from '../icons/add.png'
@@ -14,7 +14,7 @@ export default function CreatePoll() {
     const [blockNumber, setBlockNumber] = useState('');
     const [options, setOptions] = useState(['','']);
     const [whiteLists, setWhiteLists] = useState(['']);
-
+    const [value, setValue] = useState(0);
 
     function optionsChange(id,text){
         const temp = [...options];
@@ -87,6 +87,37 @@ export default function CreatePoll() {
 
     }
 
+    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+        setValue(newValue);
+    };
+
+    function a11yProps(index) {
+        return {
+            id: `simple-tab-${index}`,
+            'aria-controls': `simple-tabpanel-${index}`,
+        };
+    }
+
+
+    function TabPanel(props) {
+        const { children, value, index, ...other } = props;
+
+        return (
+            <div
+                role="tabpanel"
+                hidden={value !== index}
+                id={`simple-tabpanel-${index}`}
+                aria-labelledby={`simple-tab-${index}`}
+                {...other}
+            >
+                {value === index && (
+                    <Box sx={{ p: 3 }}>
+                        <Typography>{children}</Typography>
+                    </Box>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className={"create_poll"}>
@@ -176,41 +207,55 @@ export default function CreatePoll() {
             />
 
 
-            <div className={"create_title"}>
-                White Lists (option)
-            </div>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={value} onChange={handleChange}>
+                    <Tab label="Token or Nft" {...a11yProps(0)} />
+                    <Tab label="White Lists" {...a11yProps(1)} />
+                </Tabs>
+            </Box>
+            <TabPanel value={value} index={0}>
+                Item One
+            </TabPanel>
+            <TabPanel value={value} index={1}>
 
-            {
-                whiteLists.map( (item,id) =>
-                    (
+                <div className={"create_title"}>
+                    White Lists (option)
+                </div>
 
-                        <div key={id} className={"option_div m-5"}  style={  {"width":"100%"} } >
-                            <TextField
-                                fullWidth
-                                value={item}
-                                placeholder={"address " + (id + 1)}
-                                onChange={(event: React.ChangeEvent) => {
-                                    item = event.target.value;
-                                    whiteListChange(id,event.target.value);
-                                }}
-                            />
+                {
+                    whiteLists.map( (item,id) =>
+                        (
 
-                            {
-                                id > 0 &&
-                                <img className={"option_x"} onClick={() => xWhiteList(id)} src={x} />
-                            }
+                            <div key={id} className={"option_div m-5"}  style={  {"width":"100%"} } >
+                                <TextField
+                                    fullWidth
+                                    value={item}
+                                    placeholder={"address " + (id + 1)}
+                                    onChange={(event: React.ChangeEvent) => {
+                                        item = event.target.value;
+                                        whiteListChange(id,event.target.value);
+                                    }}
+                                />
+
+                                {
+                                    id > 0 &&
+                                    <img className={"option_x"} onClick={() => xWhiteList(id)} src={x} />
+                                }
 
 
-                        </div>
+                            </div>
 
+                        )
                     )
-                )
-            }
+                }
 
-            <div className={"add_block"} onClick={addWhiteList} >
-                <img src={add} style={{'width':'16px'}} />
-                <div className={"add_text"}>Add White List</div>
-            </div>
+                <div className={"add_block"} onClick={addWhiteList} >
+                    <img src={add} style={{'width':'16px'}} />
+                    <div className={"add_text"}>Add White List</div>
+                </div>
+
+            </TabPanel>
+
 
 
             <div className={"submit"}  onClick={submit}>
