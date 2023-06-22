@@ -24,7 +24,8 @@ mod Dao {
         // Proposal Info
         proposal_id_generator: u32,
         // proposal_list: LegacyMap::<u32, Proposal>,
-        proposal_metadata_map: LegacyMap::<u32, felt252>,
+        proposal_metadata1_map: LegacyMap::<u32, felt252>,
+        proposal_metadata2_map: LegacyMap::<u32, felt252>,
         proposal_creator_map: LegacyMap::<u32, ContractAddress>,
         proposal_option_count_map: LegacyMap::<u32, u8>,
         proposal_end_block_map: LegacyMap::<u32, u64>,
@@ -34,7 +35,7 @@ mod Dao {
         // ----
 
         // (address + metadata_url) -> proposal_id
-        proposal_id_map: LegacyMap::<(ContractAddress, felt252), u32>,
+        proposal_id_map: LegacyMap::<(ContractAddress, felt252, felt252), u32>,
         // (proposal_id + address) -> voter_status
         voter_status_map: LegacyMap::<(u32, ContractAddress), u8>,
         // (proposal_id + address) -> proposal_option
@@ -75,7 +76,9 @@ mod Dao {
     // region ---- event ----
 
     #[event]
-    fn NewProposalCreated(operator: ContractAddress, proposal_id: u32, metadata_url: felt252) {}
+    fn NewProposalCreated(
+        operator: ContractAddress, proposal_id: u32, metadata_url1: felt252, metadata_url2: felt252
+    ) {}
 
     // endregion ---- event ----
 
@@ -107,7 +110,11 @@ mod Dao {
 
     #[external]
     fn create_new_proposal(
-        option_count: u8, metadata_url: felt252, voting_end_block: u64, voter_list: Array<felt252>, 
+        option_count: u8,
+        metadata_url1: felt252,
+        metadata_url2: felt252,
+        voting_end_block: u64,
+        voter_list: Array<felt252>,
     ) -> u32 {
         // check user permission
         let caller: ContractAddress = get_caller_address();
@@ -126,18 +133,22 @@ mod Dao {
         let new_proposal = Proposal {
             id: proposal_id,
             creator: caller,
-            metadata_url: metadata_url,
+            metadata_url1: metadata_url1,
+            metadata_url2: metadata_url2,
             option_count: option_count,
             voting_end_block: voting_end_block,
             voting_strategy: VOTING_STRATEGY_WHITE_LIST,
         };
 
         // proposal_list::write(proposal_id, new_proposal);
-        proposal_metadata_map::write(proposal_id, metadata_url);
+        proposal_metadata1_map::write(proposal_id, metadata_url1);
+        proposal_metadata2_map::write(proposal_id, metadata_url2);
         proposal_creator_map::write(proposal_id, caller);
         proposal_option_count_map::write(proposal_id, option_count);
         proposal_end_block_map::write(proposal_id, voting_end_block);
         proposal_startegy_map::write(proposal_id, VOTING_STRATEGY_WHITE_LIST);
+
+        proposal_id_map::write((caller, metadata_url1, metadata_url2), proposal_id);
 
         // save voter list
         let mut i: usize = 0;
@@ -151,7 +162,7 @@ mod Dao {
             i = i + 1;
         };
 
-        NewProposalCreated(caller, proposal_id, metadata_url);
+        NewProposalCreated(caller, proposal_id, metadata_url1, metadata_url2);
 
         proposal_id
     }
@@ -159,7 +170,8 @@ mod Dao {
     #[external]
     fn create_new_proposal_nft(
         option_count: u8,
-        metadata_url: felt252,
+        metadata_url1: felt252,
+        metadata_url2: felt252,
         voting_end_block: u64,
         contract_address: ContractAddress,
         selector: ContractAddress,
@@ -181,30 +193,34 @@ mod Dao {
         let new_proposal = Proposal {
             id: proposal_id,
             creator: caller,
-            metadata_url: metadata_url,
+            metadata_url1: metadata_url1,
+            metadata_url2: metadata_url2,
             option_count: option_count,
             voting_end_block: voting_end_block,
             voting_strategy: VOTING_STRATEGY_ERC_721,
         };
         // proposal_list::write(proposal_id, new_proposal);
-        proposal_metadata_map::write(proposal_id, metadata_url);
+        proposal_metadata1_map::write(proposal_id, metadata_url1);
+        proposal_metadata2_map::write(proposal_id, metadata_url2);
         proposal_creator_map::write(proposal_id, caller);
         proposal_option_count_map::write(proposal_id, option_count);
         proposal_end_block_map::write(proposal_id, voting_end_block);
         proposal_startegy_map::write(proposal_id, VOTING_STRATEGY_ERC_721);
 
-        proposal_id_map::write((caller, metadata_url), proposal_id);
+        proposal_id_map::write((caller, metadata_url1, metadata_url2), proposal_id);
         proposal_contract_address_config::write(proposal_id, contract_address);
         proposal_selector_config::write(proposal_id, selector.into());
 
-        NewProposalCreated(caller, proposal_id, metadata_url);
+        NewProposalCreated(caller, proposal_id, metadata_url1, metadata_url2);
 
         proposal_id
     }
 
     #[view]
-    fn get_proposal_id(caller: ContractAddress, metadata_url: felt252) -> u32 {
-        proposal_id_map::read((caller, metadata_url))
+    fn get_proposal_id(
+        caller: ContractAddress, metadata_url1: felt252, metadata_url2: felt252
+    ) -> u32 {
+        proposal_id_map::read((caller, metadata_url1, metadata_url2))
     }
 
     #[external]
@@ -278,7 +294,8 @@ mod Dao {
 
         result.append(proposal_id.into());
         result.append(proposal_creator_map::read(proposal_id).into());
-        result.append(proposal_metadata_map::read(proposal_id));
+        result.append(proposal_metadata1_map::read(proposal_id));
+        result.append(proposal_metadata2_map::read(proposal_id));
         result.append(proposal_option_count_map::read(proposal_id).into());
         result.append(bool_to_felt252(_proposal_closed(proposal_id)));
         result
@@ -290,8 +307,11 @@ mod Dao {
     }
 
     #[view]
-    fn get_proposal_metadata(proposal_id: u32) -> felt252 {
-        proposal_metadata_map::read(proposal_id)
+    fn get_proposal_metadata(proposal_id: u32) -> Array<felt252> {
+        let mut result = ArrayTrait::<felt252>::new();
+        result.append(proposal_metadata1_map::read(proposal_id));
+        result.append(proposal_metadata2_map::read(proposal_id));
+        result
     }
 
     #[view]
