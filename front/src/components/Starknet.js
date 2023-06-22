@@ -4,6 +4,7 @@ import {Contract} from "starknet";
 import contractAbi from "../abis/main_abi.json";
 
 const contractAddress = "0x02a6f38d7fabcacecee58f24dd0110970f914d9c43b997d69a259fb20b2a1bb9";
+const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
 
 
 export default function Starknet() {
@@ -74,6 +75,7 @@ export default function Starknet() {
             const contract = new Contract(contractAbi, contractAddress, provider);
             const result =  await  contract.show_vote_result(proposalId);
             console.log(n2Arr(result));
+
         }
         catch(error){
             console.log(error)
@@ -147,18 +149,17 @@ export default function Starknet() {
 
 
 
-    async function createProposal(optionCount,metadataUrl){
+    async function createProposal(optionCount,metadataUrl,votingEndBlock,voterList){
         try{
 
-            const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
-            const resp = await contract.create_new_proposal(optionCount,metadataUrl,99999999,voter_list);
-
+            const resp = await contract.create_new_proposal(optionCount,metadataUrl,votingEndBlock,voterList);
+            console.log(resp.transaction_hash);
+            console.log(address)
             await provider.waitForTransaction(resp.transaction_hash);
-
-            contract.get_proposal_id("0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d",metadataUrl).then((proposal_id)=>{
+            contract.get_proposal_id(address,metadataUrl).then((proposal_id)=>{
                 console.log(parseInt(proposal_id))
             })
             // console.log(resp);
@@ -208,7 +209,7 @@ export default function Starknet() {
 
 
 
-                <button onClick={()=>createProposal(2,"abc")}>
+                <button onClick={()=>createProposal(2,"abc",99999999,voter_list)}>
                     create proposal
                 </button>
                 <br/>
