@@ -6,6 +6,12 @@ import add from '../icons/add.png'
 import x from '../icons/x.png'
 import axios from "axios";
 
+import Starknet from "./Starknet";
+
+
+import eventBus from './event'
+
+
 export default function CreatePoll() {
 
 
@@ -15,6 +21,14 @@ export default function CreatePoll() {
     const [options, setOptions] = useState(['','']);
     const [whiteLists, setWhiteLists] = useState(['']);
     const [value, setValue] = useState(0);
+
+
+    useEffect(() => {
+
+        eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
+
+    }, [])
+
 
     function optionsChange(id,text){
         const temp = [...options];
@@ -66,17 +80,27 @@ export default function CreatePoll() {
 
     function submit(){
 
+        eventBus.emit('say', 'BNTang', 18);
+
+        return;
+
+        const data = {
+            title: title,
+            content: content,
+            blockNumber: blockNumber,
+            options: options,
+            whiteLists: whiteLists,
+        };
+
         const form = new FormData();
-        form.append('title',title);
-        form.append('content',content);
-        form.append('blockNumber',blockNumber);
-        form.append('options',options);
-        form.append('whiteLists',whiteLists);
+        form.append('data',JSON.stringify(data));
 
         axios.get('https://test.metaforo.io/api/feed/groups')
             .then(response =>
                 console.log(response)
             );
+
+
 
         axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
             .then(response =>
