@@ -30,7 +30,7 @@ export default function CreatePoll() {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        connectWallet();
+        connectWallet().then();
 
         // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
 
@@ -164,10 +164,17 @@ export default function CreatePoll() {
             const metadataUrl2 =  metadataUrl.substring(30)
             const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
             await provider.waitForTransaction(resp.transaction_hash);
-            contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
-                return parseInt(proposal_id);
-                // console.log('proposal_id',parseInt(proposal_id))
-            });
+
+            const proposal_id = await contract.get_proposal_id(address,metadataUrl1,metadataUrl2);
+            console.log('proposal_id',parseInt(proposal_id))
+
+            return parseInt(proposal_id);
+
+            // contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
+            //     console.log('proposal_id',parseInt(proposal_id))
+            //
+            //
+            // });
             // console.log(resp);
             // provider.waitForTransaction(resp.transaction_hash).then((res)=>{
             //     // console.log("wait");
