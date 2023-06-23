@@ -18,17 +18,17 @@ const routes = [
         element: <App />,
         // errorElement: <ErrorPage />,
         children: [
-            {
-                path: "/stark",
-                element: <Starknet />,
-            },
+            // {
+            //     path: "/stark",
+            //     element: <Starknet />,
+            // },
             {
                 path: "/create",
                 element: <CreatePoll />,
             },
             {
-                path: "/view",
-                // element: <ViewPoll />,
+                path: "/view/:id",
+                element: <ViewPoll />,
             },
         ],
     },

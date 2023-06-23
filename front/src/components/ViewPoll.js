@@ -6,15 +6,15 @@ import add from '../icons/add.png'
 import x from '../icons/x.png'
 import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
-
 import axios from "axios";
 import {connect} from "@argent/get-starknet";
 import {Contract} from "starknet";
 import contractAbi from "../abis/main_abi.json";
+import { useParams } from "react-router-dom";
 import eventBus from "./event";
 
-export default function ViewPoll() {
 
+export default function ViewPoll() {
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -26,10 +26,6 @@ export default function ViewPoll() {
     const [isConnected, setIsConnected] = useState(false);
 
     // persist state on reload
-    useEffect(() => {
-        connectWallet()
-    }, [])
-
 
 
     function arr2Str(arr){
@@ -119,6 +115,30 @@ export default function ViewPoll() {
             console.log(error)
         }
     }
+
+    const params = useParams();
+
+    useEffect(() => {
+        console.log(params);
+        connectWallet()
+
+
+        eventBus.emit('showVote',params.id);
+
+        // axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
+        //     .then((response) => {
+        //         // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+        //         const metadataUrl =  response.data.data.tx_id ;
+        //         eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
+        //     });
+
+
+    }, [])
+
+    function showVote(id, ar){
+
+    }
+
 
     return (
         <div className={"create_poll"}>
