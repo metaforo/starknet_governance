@@ -167,13 +167,12 @@ export default function CreatePoll() {
             contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
                 return parseInt(proposal_id);
                 // console.log('proposal_id',parseInt(proposal_id))
-            })
+            });
             // console.log(resp);
             // provider.waitForTransaction(resp.transaction_hash).then((res)=>{
             //     // console.log("wait");
             //
             // })
-            return 0;
         }
         catch(error){
             console.log(error);
