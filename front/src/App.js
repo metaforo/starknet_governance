@@ -9,7 +9,7 @@ function App() {
   return (
       <StarknetConfig>
           <div className="App">
-            <Starknet/>
+            {/*<Starknet/>*/}
             <Outlet/>
           </div>
       </StarknetConfig>

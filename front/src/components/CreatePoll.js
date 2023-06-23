@@ -10,6 +10,10 @@ import Starknet from "./Starknet";
 
 
 import eventBus from './event'
+import {connect} from "@argent/get-starknet";
+import {Contract} from "starknet";
+import contractAbi from "../abis/main_abi.json";
+const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
 
 
 export default function CreatePoll() {
@@ -21,13 +25,41 @@ export default function CreatePoll() {
     const [options, setOptions] = useState(['','']);
     const [whiteLists, setWhiteLists] = useState(['']);
     const [value, setValue] = useState(0);
-
+    const [provider, setProvider] = useState('');
+    const [address, setAddress] = useState('');
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
+        connectWallet();
 
         // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
 
     }, [])
+
+
+    const connectWallet = async() => {
+
+        try{
+
+            if ( !isConnected ){
+                // let the user choose a starknet wallet
+                const starknet = await connect();
+                // connect to the user-chosen wallet
+                await starknet?.enable({ starknetVersion: "v4" })
+                // set account provider
+                setProvider(starknet.account);
+                // set user address
+                setAddress(starknet.selectedAddress);
+                // set connection status
+                setIsConnected(true);
+            }
+
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
 
 
     function optionsChange(id,text){
@@ -78,6 +110,9 @@ export default function CreatePoll() {
         }
     }
 
+
+
+
     function submit(){
 
 
@@ -107,12 +142,46 @@ export default function CreatePoll() {
             .then((response) => {
                 // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
                 const metadataUrl =  response.data.data.tx_id ;
-                eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
+                // eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
+
+                createProposal(optionCount, metadataUrl, parseInt(blockNumber), whiteLists).then((proposal_id)=>{
+                    console.log(proposal_id);
+                })
+
             });
 
 
 
     }
+
+
+
+    async function createProposal(optionCount,metadataUrl,votingEndBlock,voterList){
+        try{
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            const metadataUrl1 =  metadataUrl.substring(0,30)
+            const metadataUrl2 =  metadataUrl.substring(30)
+            const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
+            await provider.waitForTransaction(resp.transaction_hash);
+            contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
+                return parseInt(proposal_id);
+                // console.log('proposal_id',parseInt(proposal_id))
+            })
+            // console.log(resp);
+            // provider.waitForTransaction(resp.transaction_hash).then((res)=>{
+            //     // console.log("wait");
+            //
+            // })
+            return 0;
+        }
+        catch(error){
+            console.log(error);
+            return 0;
+        }
+    }
+
+
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
