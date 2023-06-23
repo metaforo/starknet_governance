@@ -80,9 +80,9 @@ export default function CreatePoll() {
 
     function submit(){
 
-        eventBus.emit('say', 'BNTang', 18);
 
-        return;
+        // const  optionCount,metadataUrl,votingEndBlock,voterList;
+
 
         const data = {
             title: title,
@@ -92,20 +92,23 @@ export default function CreatePoll() {
             whiteLists: whiteLists,
         };
 
+        const optionCount = options.length;
+
         const form = new FormData();
         form.append('data',JSON.stringify(data));
 
-        axios.get('https://test.metaforo.io/api/feed/groups')
-            .then(response =>
-                console.log(response)
-            );
-
+        // axios.get('https://test.metaforo.io/api/feed/groups')
+        //     .then(response =>
+        //         console.log(response)
+        //     );
 
 
         axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
-            .then(response =>
-                console.log(response)
-            );
+            .then((response) => {
+                // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+                const metadataUrl =  response.data.data.tx_id ;
+                eventBus.emit('createVote', optionCount, metadataUrl, blockNumber, whiteLists)
+            });
 
 
 
