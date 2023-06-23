@@ -175,13 +175,13 @@ export default function Starknet() {
     }
 
 
-    async function createProposalNft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,contractAddress,selector){
+    async function createProposalNft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,cAddress,selector){
         try{
 
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
-            const resp = await contract.create_new_proposal_nft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,contractAddress,selector);
+            const resp = await contract.create_new_proposal_nft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,cAddress,selector);
             console.log(resp.transaction_hash);
             console.log(address)
             await provider.waitForTransaction(resp.transaction_hash);
