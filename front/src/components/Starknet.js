@@ -2,6 +2,7 @@ import { useState,useEffect } from "react";
 import { connect } from '@argent/get-starknet'
 import {Contract} from "starknet";
 import contractAbi from "../abis/main_abi.json";
+import eventBus from "./event";
 
 const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
 const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
@@ -24,6 +25,9 @@ export default function Starknet() {
     // persist state on reload
     useEffect(() => {
         connectWallet()
+
+
+        eventBus.addListener('createVote',  function (optionCount, metadataUrl, blockNumber, whiteLists ){ createProposal(optionCount, metadataUrl, blockNumber, whiteLists) } );
     }, [])
 
     function test(){
@@ -150,18 +154,30 @@ export default function Starknet() {
 
 
 
-    async function createProposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList){
+    async function createProposal(optionCount,metadataUrl,votingEndBlock,voterList){
         try{
+
+            console.log('optionCount',optionCount);
+            console.log('metadataUrl',metadataUrl);
+            console.log('votingEndBlock',votingEndBlock);
+            console.log('voterList',voterList);
 
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
+
+            const metadataUrl1 =  metadataUrl.substring(0,30)
+            const metadataUrl2 =  metadataUrl.substring(30)
+
+            console.log('metadataUrl',metadataUrl)
+            console.log('metadataUrl1',metadataUrl1)
+            console.log('metadataUrl2',metadataUrl2)
 
             const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
             console.log(resp.transaction_hash);
             console.log(address)
             await provider.waitForTransaction(resp.transaction_hash);
             contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
-                console.log(parseInt(proposal_id))
+                console.log('proposal_id',parseInt(proposal_id))
             })
             // console.log(resp);
             // provider.waitForTransaction(resp.transaction_hash).then((res)=>{
@@ -235,7 +251,7 @@ export default function Starknet() {
 
 
 
-                <button onClick={()=>createProposal(2,"abc","efg",999999999,voter_list)}>
+                <button onClick={()=>createProposal(2,"1z5n0jQ8uancYyJT3BoAKzhy7dyHMa9cCyDSayoQkZQ",999999999,voter_list)}>
                     create proposal
                 </button>
                 <br/>

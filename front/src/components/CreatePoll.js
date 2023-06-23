@@ -25,7 +25,7 @@ export default function CreatePoll() {
 
     useEffect(() => {
 
-        eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
+        // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
 
     }, [])
 
