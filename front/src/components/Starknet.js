@@ -49,7 +49,6 @@ export default function Starknet() {
     const connectWallet = async() => {
 
         try{
-;
 
             if ( !isConnected ){
                 // let the user choose a starknet wallet
