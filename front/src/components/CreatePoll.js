@@ -107,7 +107,7 @@ export default function CreatePoll() {
             .then((response) => {
                 // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
                 const metadataUrl =  response.data.data.tx_id ;
-                eventBus.emit('createVote', optionCount, metadataUrl, blockNumber, whiteLists)
+                eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
             });
 
 

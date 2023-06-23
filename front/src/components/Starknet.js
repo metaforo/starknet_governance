@@ -171,6 +171,7 @@ export default function Starknet() {
             console.log('metadataUrl',metadataUrl)
             console.log('metadataUrl1',metadataUrl1)
             console.log('metadataUrl2',metadataUrl2)
+            
 
             const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
             console.log(resp.transaction_hash);
