@@ -8,6 +8,10 @@ import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
 
 import axios from "axios";
+import {connect} from "@argent/get-starknet";
+import {Contract} from "starknet";
+import contractAbi from "../abis/main_abi.json";
+import eventBus from "./event";
 
 export default function ViewPoll() {
 
@@ -17,8 +21,104 @@ export default function ViewPoll() {
     const [blockNumber, setBlockNumber] = useState('');
     const [options, setOptions] = useState(['','']);
     const [whiteLists, setWhiteLists] = useState(['']);
+    const [provider, setProvider] = useState('');
+    const [address, setAddress] = useState('');
+    const [isConnected, setIsConnected] = useState(false);
+
+    // persist state on reload
+    useEffect(() => {
+        connectWallet()
+    }, [])
 
 
+
+    function arr2Str(arr){
+        if(arr.length === 0){
+            return arr
+        }
+        for (let i = 0; i < arr.length; i++) {
+            let str = arr[i]+'';
+            str=str.substring(0,str.length);
+            arr[i] = str;
+        }
+        return arr;
+    }
+
+    function arr2Int(arr){
+        if(arr.length === 0){
+            return arr
+        }
+        for (let i = 0; i < arr.length; i++) {
+            arr[i] = parseInt(arr[i]);
+        }
+        return arr;
+    }
+
+    const connectWallet = async() => {
+
+        try{
+
+            if ( !isConnected ){
+                // let the user choose a starknet wallet
+                const starknet = await connect();
+                // connect to the user-chosen wallet
+                await starknet?.enable({ starknetVersion: "v4" })
+                // set account provider
+                setProvider(starknet.account);
+                // set user address
+                setAddress(starknet.selectedAddress);
+                // set connection status
+                setIsConnected(true);
+            }
+
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
+    async function showResult(proposalId){
+
+        let m = [];
+
+        try{
+
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+
+            const vote_data    =  await  contract.get_proposal(proposalId);
+            const vote_result  =  await  contract.show_vote_result(proposalId);
+            const vote_history =  await  contract.show_vote_history(proposalId,address);
+
+            m["vote_data"]   = arr2Str(vote_data);
+            m["vote_result"] = arr2Int(vote_result);
+            m["vote_history"] = parseInt(vote_history);
+            console.log(m);
+            return m;
+        }
+        catch(error){
+            console.log(error)
+            return m;
+        }
+
+    }
+
+
+    async function vote(proposalId,optionId){
+        try{
+
+            await connectWallet();
+
+            const resp = await contract.vote(proposalId,optionId);
+            console.log(resp);
+            await provider.waitForTransaction(resp.transaction_hash);
+            return resp;
+
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
 
     return (
         <div className={"create_poll"}>

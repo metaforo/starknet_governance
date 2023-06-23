@@ -32,11 +32,23 @@ export default function Starknet() {
 
     function test(){
        let arr = ["1n","0n"];
-       const tmp = n2Arr(arr);
+       const tmp = arr2Int(arr);
        console.log(tmp);
     }
 
-    function n2Arr(arr){
+    function arr2Str(arr){
+        if(arr.length === 0){
+            return arr
+        }
+        for (let i = 0; i < arr.length; i++) {
+            let str = arr[i]+'';
+            str=str.substring(0,str.length);
+            arr[i] = str;
+        }
+        return arr;
+    }
+
+    function arr2Int(arr){
         if(arr.length === 0){
             return arr
         }
@@ -69,6 +81,35 @@ export default function Starknet() {
         }
     }
 
+    async function showResult(proposalId){
+
+        let m = [];
+
+        try{
+
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+
+            const vote_data    =  await  contract.get_proposal(proposalId);
+            const vote_result  =  await  contract.show_vote_result(proposalId);
+            const vote_history =  await  contract.show_vote_history(proposalId,address);
+
+            m["vote_data"]   = arr2Str(vote_data);
+            m["vote_result"] = arr2Int(vote_result);
+            m["vote_history"] = parseInt(vote_history);
+            console.log(m);
+            return m;
+        }
+        catch(error){
+            console.log(error)
+            return m;
+        }
+
+    }
+
+
+
+
 
 
     async function showVoteResult(proposalId){
@@ -77,8 +118,8 @@ export default function Starknet() {
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
             const result =  await  contract.show_vote_result(proposalId);
-            console.log(n2Arr(result));
-            return  n2Arr(result);
+            console.log(arr2Int(result));
+            return  arr2Int(result);
 
         }
         catch(error){
@@ -236,6 +277,13 @@ export default function Starknet() {
                     showBlockNum
                 </button>
                 <br/>
+
+
+                <button onClick={()=>showResult(1)}>
+                    showResult
+                </button>
+                <br/>
+
 
 
                 <button onClick={()=>showVoteResult(1)}>
