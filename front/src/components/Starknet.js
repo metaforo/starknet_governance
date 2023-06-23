@@ -75,6 +75,7 @@ export default function Starknet() {
             const contract = new Contract(contractAbi, contractAddress, provider);
             const result =  await  contract.show_vote_result(proposalId);
             console.log(n2Arr(result));
+            return  n2Arr(result);
 
         }
         catch(error){
@@ -136,9 +137,9 @@ export default function Starknet() {
             await connectWallet();
 
             const resp = await contract.vote(proposalId,optionId);
-            await provider.waitForTransaction(resp.transaction_hash);
-
             console.log(resp);
+            await provider.waitForTransaction(resp.transaction_hash);
+            return resp;
 
         }
         catch(error){
@@ -156,6 +157,31 @@ export default function Starknet() {
             const contract = new Contract(contractAbi, contractAddress, provider);
 
             const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
+            console.log(resp.transaction_hash);
+            console.log(address)
+            await provider.waitForTransaction(resp.transaction_hash);
+            contract.get_proposal_id(address,metadataUrl1,metadataUrl2).then((proposal_id)=>{
+                console.log(parseInt(proposal_id))
+            })
+            // console.log(resp);
+            // provider.waitForTransaction(resp.transaction_hash).then((res)=>{
+            //     // console.log("wait");
+            //
+            // })
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
+
+    async function createProposalNft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,contractAddress,selector){
+        try{
+
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+
+            const resp = await contract.create_new_proposal_nft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,contractAddress,selector);
             console.log(resp.transaction_hash);
             console.log(address)
             await provider.waitForTransaction(resp.transaction_hash);
@@ -213,6 +239,16 @@ export default function Starknet() {
                     create proposal
                 </button>
                 <br/>
+
+
+                <button onClick={()=>createProposalNft(2,"abc","efg",999999999,
+                    "0x0702d639d8579f7a841e214b607b990df3ee9cbfdb1329c63fc8801d8779e343",
+                    "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e")}>
+                    create proposal nft
+                </button>
+                <br/>
+
+
 
 
                 <button onClick={()=>vote(1,1)}>
