@@ -6,11 +6,12 @@ import add from '../icons/add.png'
 import x from '../icons/x.png'
 import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
-
 import axios from "axios";
+import { useParams } from "react-router-dom";
+import eventBus from "./event";
+
 
 export default function ViewPoll() {
-
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -18,6 +19,27 @@ export default function ViewPoll() {
     const [options, setOptions] = useState(['','']);
     const [whiteLists, setWhiteLists] = useState(['']);
 
+    const params = useParams();
+
+    useEffect(() => {
+        console.log(params);
+
+
+        eventBus.emit('showVote',params.id);
+
+        // axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
+        //     .then((response) => {
+        //         // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+        //         const metadataUrl =  response.data.data.tx_id ;
+        //         eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
+        //     });
+
+
+    }, [])
+
+    function showVote(id, ar){
+
+    }
 
 
     return (
