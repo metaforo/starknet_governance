@@ -13,6 +13,7 @@ import contractAbi from "../abis/main_abi.json";
 import { useParams } from "react-router-dom";
 import eventBus from "./event";
 
+const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
 
 export default function ViewPoll() {
 
@@ -104,6 +105,8 @@ export default function ViewPoll() {
         try{
 
             await connectWallet();
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
 
             const resp = await contract.vote(proposalId,optionId);
             console.log(resp);
