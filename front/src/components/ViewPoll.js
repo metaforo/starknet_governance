@@ -8,7 +8,7 @@ import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
 import axios from "axios";
 import {connect} from "@argent/get-starknet";
-import {Contract,Provider} from "starknet";
+import {Contract,Provider,defaultProvider} from "starknet";
 import contractAbi from "../abis/main_abi.json";
 import { useParams } from "react-router-dom";
 import eventBus from "./event";
@@ -39,7 +39,11 @@ export default function ViewPoll() {
     const [closeAt, setCloseAt] = useState(999999999)
 
     // persist state on reload
-
+    const dp = new Provider({
+        sequencer: {
+            baseUrl: 'https://alpha4.starknet.io',
+        }
+    })
 
     function arr2Str(arr){
         if(arr.length === 0){
@@ -52,6 +56,7 @@ export default function ViewPoll() {
         }
         return arr;
     }
+
 
     function arr2Int(arr){
         if(arr.length === 0){
@@ -66,15 +71,15 @@ export default function ViewPoll() {
     const connectWallet = async() => {
 
         try{
+            const starknet = await connect();
 
             if ( !isConnected ){
                 // let the user choose a starknet wallet
-                const starknet = await connect();
                 // connect to the user-chosen wallet
                 await starknet?.enable({ starknetVersion: "v4" })
                 // set account provider
                 setProvider(starknet.account);
-                console.log(starknet.account);
+                console.log(starknet);
                 // set user address
                 setAddress(starknet.selectedAddress);
                 // set connection status
@@ -87,24 +92,71 @@ export default function ViewPoll() {
         }
     }
 
+    function hexToString(str){
+        let val="";
+        let arr = str.split(",");
+        console.log(arr)
+        for(let  i = 0; i < arr.length; i++){
+            val += arr[i].fromCharCode(i);
+        }
+        return val;
+    }
+
     async function showResult(proposalId){
 
         let m = [];
 
         try{
 
-            await connectWallet().then( async ()=>{
-                const contract = new Contract(contractAbi, contractAddress, provider);
+            // const vote_data = await dp.callContract({
+            //     contractAddress: contractAddress,
+            //     entrypoint: 'get_proposal',
+            //     calldata: [proposalId],
+            // });
+            //
+            // const vote_result = await dp.callContract({
+            //     contractAddress: contractAddress,
+            //     entrypoint: 'show_vote_result',
+            //     calldata: [proposalId],
+            // });
+
+
+            // const vote_history = await dp.callContract({
+            //     contractAddress: contractAddress,
+            //     entrypoint: 'show_vote_history',
+            //     calldata: [proposalId,address],
+            // });
+
+
+            // console.log(poolBalanceTokenB);
+
+                //await connectWallet();
+
+                const contract     = new Contract(contractAbi, contractAddress, dp);
                 const vote_data    =  await  contract.get_proposal(proposalId);
                 const vote_result  =  await  contract.show_vote_result(proposalId);
-                const vote_history =  await  contract.show_vote_history(proposalId,address);
+                // const vote_history =  await  contract.show_vote_history(proposalId,address);
 
                 m["vote_data"]   = arr2Str(vote_data);
                 m["vote_result"] = arr2Int(vote_result);
-                m["vote_history"] = parseInt(vote_history);
+                // m["vote_history"] = vote_history;
                 console.log(m);
                 return m;
-            })
+
+
+            //
+            // await connectWallet().then( async ()=>{
+            //     const contract = new Contract(contractAbi, contractAddress, provider);
+            //     const vote_data    =  await  contract.get_proposal(proposalId);
+            //     const vote_result  =  await  contract.show_vote_result(proposalId);
+            //     const vote_history =  await  contract.show_vote_history(proposalId,address);
+            //
+            //     m["vote_data"]   = arr2Str(vote_data);
+            //     m["vote_result"] = arr2Int(vote_result);
+            //     m["vote_history"] = parseInt(vote_history);
+            //     console.log(m);
+            //     return m;
+            // })
 
 
 
@@ -118,8 +170,8 @@ export default function ViewPoll() {
 
     async function showBlockNum(){
         try{
-            await connectWallet();
-            const contract = new Contract(contractAbi, contractAddress, provider);
+            // await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, dp);
             const result =  await  contract.show_block_number();
             console.log(parseInt(result));
             return parseInt(result);
@@ -133,7 +185,7 @@ export default function ViewPoll() {
 
     async function vote(proposalId,optionId){
         try{
-           await connectWallet();
+            await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
             const resp = await contract.vote(proposalId,optionId);
@@ -161,10 +213,12 @@ export default function ViewPoll() {
     useEffect( () => {
 
         window.onload=function (){
-            connectWallet()
+            connectWallet().then(()=>{
+                showResult(2);
+            });
+
             renderVote('aa');
 
-            showResult(2);
         }
 
         // showResult(params.id)
