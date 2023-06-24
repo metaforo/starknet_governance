@@ -32,7 +32,7 @@ export default function ViewPoll() {
     const [showResultStatus,setShowResultStatus] = useState(false);
 
     const [voteResult,setVoteResult] = useState(['100','100']);
-    const [voteResultPer,setVoteResultPer] = useState(['50','50']);
+    const [voteResultPer,setVoteResultPer] = useState(['0','0']);
 
     const [pollStatus, setPollStatus] = useState(true)
     const [votesCount, setVotesCount] = useState(0)
@@ -141,24 +141,32 @@ export default function ViewPoll() {
                 m["vote_result"] = arr2Int(vote_result);
                 // m["vote_history"] = vote_history;
                 console.log(m);
+
+                renderVote( toStr (BigInt( m["vote_data"][2])) + toStr(BigInt( m["vote_data"][3])) );
+
+                setVoteResult(m["vote_result"]);
+
+                var total = 0;
+
+                m["vote_result"].map( (item,id) => {
+                    total += item;
+                })
+                if(total > 0){
+                    var temp_per = [];
+
+                    m["vote_result"].map( (item,id) => {
+
+                        temp_per.push( (Number(item)/Number(total) * 100).toFixed(2).toString() )
+
+                    })
+
+                    setVoteResult(setVoteResultPer)
+                }
+
+
+
+
                 return m;
-
-
-            //
-            // await connectWallet().then( async ()=>{
-            //     const contract = new Contract(contractAbi, contractAddress, provider);
-            //     const vote_data    =  await  contract.get_proposal(proposalId);
-            //     const vote_result  =  await  contract.show_vote_result(proposalId);
-            //     const vote_history =  await  contract.show_vote_history(proposalId,address);
-            //
-            //     m["vote_data"]   = arr2Str(vote_data);
-            //     m["vote_result"] = arr2Int(vote_result);
-            //     m["vote_history"] = parseInt(vote_history);
-            //     console.log(m);
-            //     return m;
-            // })
-
-
 
         }
         catch(error){
@@ -167,6 +175,25 @@ export default function ViewPoll() {
         }
 
     }
+
+    function toStr(data){
+
+        const feltToString = felt => felt
+            // To hex
+            .toString(16)
+            // Split into 2 chars
+            .match(/.{2}/g)
+            // Get char from code
+            .map( c => String.fromCharCode(parseInt( c, 16 ) ) )
+            // Join to a string
+            .join('');
+
+        const felt = data;
+
+        return feltToString(felt);
+
+    }
+
 
     async function showBlockNum(){
         try{
@@ -214,10 +241,12 @@ export default function ViewPoll() {
 
         window.onload=function (){
             connectWallet().then(()=>{
-                showResult(2);
+                const r = showResult(params.id).then(( r )=>function (){
+                    console.log('r',r);
+                });
+                console.log('raa',r);
             });
 
-            renderVote('aa');
 
         }
 
@@ -239,7 +268,8 @@ export default function ViewPoll() {
 
     function renderVote(url){
 
-        url = 'https://arweave.net/tx/1z5n0jQ8uancYyJT3BoAKzhy7dyHMa9cCyDSayoQkZQ/data.json';
+        // url = 'https://arweave.net/tx/1z5n0jQ8uancYyJT3BoAKzhy7dyHMa9cCyDSayoQkZQ/data.json';
+        url = 'https://arweave.net/tx/'+url+'/data.json';
 
 
         axios.get(url)
