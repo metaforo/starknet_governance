@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {TextField , Tab, Box, Tabs, Typography } from "@mui/material";
+import {TextField , Tab, Box, Tabs, Typography , Modal } from "@mui/material";
 
 import "../css/createPoll.css"
 import add from '../icons/add.png'
@@ -28,6 +28,14 @@ export default function CreatePoll() {
     const [provider, setProvider] = useState('');
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
+
+    const [modelOpen, setModelOpen] = useState(false);
+    const [loading, setLoading] = useState('Loading...');
+
+    // const mask = mui.createMask(callback);//callback为用户点击蒙版时自动执行的回调；
+    // mask.show();//显示遮罩
+    // mask.close();//关闭遮罩
+
 
     useEffect(() => {
         connectWallet().then();
@@ -118,6 +126,8 @@ export default function CreatePoll() {
 
         // const  optionCount,metadataUrl,votingEndBlock,voterList;
 
+        setModelOpen(true);
+
 
         const data = {
             title: title,
@@ -146,6 +156,11 @@ export default function CreatePoll() {
 
                 createProposal(optionCount, metadataUrl, parseInt(blockNumber), whiteLists).then((proposal_id)=>{
                     console.log(proposal_id);
+
+                    var currentUrl = window.location.href;
+                    currentUrl =  'view result in : ' + currentUrl.replace('create','view') + '/' + proposal_id;
+                    setLoading(currentUrl);
+
                 })
 
             });
@@ -201,6 +216,14 @@ export default function CreatePoll() {
     }
 
 
+    const handleOpen = () => setModelOpen(true);
+    const handleClose = () => function (){
+        if(loading === 'Loading...'){
+            return false;
+        }
+        setModelOpen(false);
+    };
+
     function TabPanel(props) {
         const { children, value, index, ...other } = props;
 
@@ -223,6 +246,30 @@ export default function CreatePoll() {
 
     return (
         <div className={"create_poll"}>
+
+            <Modal
+                open={modelOpen}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #000',
+                    boxShadow: 24,
+                    p: 4,
+                }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {loading}
+                    </Typography>
+
+                </Box>
+            </Modal>
 
 
             <div className={"create_poll_title_div"}>

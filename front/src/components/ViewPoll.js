@@ -121,12 +121,19 @@ export default function ViewPoll() {
 
     const params = useParams();
 
-    useEffect(() => {
-        console.log(params);
+    // useEffect(() => {
+    //     async function fetchData() {
+    //         // You can await here
+    //         const response = await MyAPI.getData(someId);
+    //         // ...
+    //     }
+    //     fetchData();
+    // }, [someId]);
+
+    useEffect( () => {
         connectWallet()
-
-
-        eventBus.emit('showVote',params.id);
+        showResult(params.id)
+        // eventBus.emit('showVote',params.id);
 
         // axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
         //     .then((response) => {
@@ -145,6 +152,7 @@ export default function ViewPoll() {
 
     return (
         <div className={"create_poll"}>
+
             <div className={"poll_process"}>
                 Poll in Progress
             </div>

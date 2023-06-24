@@ -27,7 +27,7 @@ export default function Starknet() {
         connectWallet()
 
 
-        eventBus.addListener('createVote',  function (optionCount, metadataUrl, blockNumber, whiteLists ){ createProposal(optionCount, metadataUrl, blockNumber, whiteLists) } );
+        // eventBus.addListener('createVote',  function (optionCount, metadataUrl, blockNumber, whiteLists ){ createProposal(optionCount, metadataUrl, blockNumber, whiteLists) } );
     }, [])
 
     function test(){
