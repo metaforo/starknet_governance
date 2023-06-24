@@ -183,15 +183,18 @@ export default function CreatePoll() {
     }
 
 
-    async function createProposalNft(optionCount,metadataUrl,votingEndBlock,voterList){
+    async function createProposalNft(optionCount,metadataUrl,votingEndBlock,cAddress,selector){
         try{
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
-            const metadataUrl1 =  metadataUrl.substring(0,30)
-            const metadataUrl2 =  metadataUrl.substring(30)
-            const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
-            await provider.waitForTransaction(resp.transaction_hash);
+            const metadataUrl1 =  metadataUrl.substring(0,30);
+            const metadataUrl2 =  metadataUrl.substring(30);
 
+            const resp = await contract.create_new_proposal_nft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,cAddress,selector);
+            console.log(resp.transaction_hash);
+            console.log(address);
+
+            await provider.waitForTransaction(resp.transaction_hash);
             const proposal_id = await contract.get_proposal_id(address,metadataUrl1,metadataUrl2);
             console.log('proposal_id',parseInt(proposal_id))
 
