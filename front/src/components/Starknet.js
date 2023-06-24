@@ -7,7 +7,7 @@ import eventBus from "./event";
 const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
 const voter_list = ["0x007CeE74ADB1Dceb142dFB83A495C9C765e893df5270a7Eb75D0dA82D63a737d"];
 
-
+/* global BigInt */
 export default function Starknet() {
 
 
@@ -81,6 +81,24 @@ export default function Starknet() {
         }
     }
 
+    function toStr(data){
+
+        const feltToString = felt => felt
+            // To hex
+            .toString(16)
+            // Split into 2 chars
+            .match(/.{2}/g)
+            // Get char from code
+            .map( c => String.fromCharCode(parseInt( c, 16 ) ) )
+            // Join to a string
+            .join('');
+
+        const felt = data;
+
+        return feltToString(felt);
+
+    }
+
     async function showResult(proposalId){
 
         let m = [];
@@ -95,6 +113,10 @@ export default function Starknet() {
             const vote_history =  await  contract.show_vote_history(proposalId,address);
 
             m["vote_data"]   = arr2Str(vote_data);
+
+            console.log(  toStr( BigInt( m["vote_data"][2] )  ));
+            console.log(  toStr( BigInt( m["vote_data"][3] )  ));
+
             m["vote_result"] = arr2Int(vote_result);
             m["vote_history"] = parseInt(vote_history);
             console.log(m);
@@ -279,7 +301,7 @@ export default function Starknet() {
                 <br/>
 
 
-                <button onClick={()=>showResult(1)}>
+                <button onClick={()=>showResult(8)}>
                     showResult
                 </button>
                 <br/>

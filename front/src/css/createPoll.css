@@ -181,7 +181,7 @@ body{
 }
 
 .view_poll_title{
-
+  margin-top: 10px;
   height: 29px;
   font-style: normal;
   font-weight: 700;
@@ -312,6 +312,7 @@ body{
 }
 
 .show_result{
+  margin-left: 10px;
   color: #99A4A9;
   font-size: 14px;
 }

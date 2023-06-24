@@ -21,10 +21,16 @@ export default function ViewPoll() {
     const [content, setContent] = useState('');
     const [blockNumber, setBlockNumber] = useState('');
     const [options, setOptions] = useState(['','']);
+    const [checkStatus, setCheckStatus] = useState([false,false]);
     const [whiteLists, setWhiteLists] = useState(['']);
+
     const [provider, setProvider] = useState('');
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
+
+    const [showResult,setShowResult] = useState(false);
+
+
 
     // persist state on reload
 
@@ -62,6 +68,7 @@ export default function ViewPoll() {
                 await starknet?.enable({ starknetVersion: "v4" })
                 // set account provider
                 setProvider(starknet.account);
+                console.log(starknet.account);
                 // set user address
                 setAddress(starknet.selectedAddress);
                 // set connection status
@@ -80,18 +87,21 @@ export default function ViewPoll() {
 
         try{
 
-            await connectWallet();
-            const contract = new Contract(contractAbi, contractAddress, provider);
+            await connectWallet().then( async ()=>{
+                const contract = new Contract(contractAbi, contractAddress, provider);
+                const vote_data    =  await  contract.get_proposal(proposalId);
+                const vote_result  =  await  contract.show_vote_result(proposalId);
+                const vote_history =  await  contract.show_vote_history(proposalId,address);
 
-            const vote_data    =  await  contract.get_proposal(proposalId);
-            const vote_result  =  await  contract.show_vote_result(proposalId);
-            const vote_history =  await  contract.show_vote_history(proposalId,address);
+                m["vote_data"]   = arr2Str(vote_data);
+                m["vote_result"] = arr2Int(vote_result);
+                m["vote_history"] = parseInt(vote_history);
+                console.log(m);
+                return m;
+            })
 
-            m["vote_data"]   = arr2Str(vote_data);
-            m["vote_result"] = arr2Int(vote_result);
-            m["vote_history"] = parseInt(vote_history);
-            console.log(m);
-            return m;
+
+
         }
         catch(error){
             console.log(error)
@@ -104,7 +114,6 @@ export default function ViewPoll() {
     async function vote(proposalId,optionId){
         try{
 
-            await connectWallet();
             await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
@@ -131,8 +140,8 @@ export default function ViewPoll() {
     // }, [someId]);
 
     useEffect( () => {
-        connectWallet()
-        showResult(params.id)
+        // connectWallet()
+        // showResult(params.id)
         // eventBus.emit('showVote',params.id);
 
         // axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
@@ -143,7 +152,31 @@ export default function ViewPoll() {
         //     });
 
 
+        renderVote('aa');
+
     }, [])
+
+
+    function renderVote(url){
+
+        url = 'https://arweave.net/tx/1z5n0jQ8uancYyJT3BoAKzhy7dyHMa9cCyDSayoQkZQ/data.json';
+
+
+        axios.get(url)
+            .then((response) => {
+
+                console.log(response);
+
+                setTitle(response.data.title)
+                setOptions(response.data.options)
+                setContent(response.data.content)
+                setBlockNumber(response.data.blockNumber)
+                setWhiteLists(response.data.whiteLists)
+
+
+            });
+
+    }
 
     function showVote(id, ar){
 
@@ -158,6 +191,7 @@ export default function ViewPoll() {
             </div>
 
             <div className={"view_poll_title"}>
+                {title}
                 Magic Square Community Validation: Orbofi AI on the Magic Store Voting
             </div>
 
@@ -172,6 +206,7 @@ export default function ViewPoll() {
             </div>
 
             <div className={"view_poll_content"}>
+                {content}
                 Welcome to the Magic Square Community Validation for Project Orbofi AI on the Magic Store Voting. As a platform
                 dedicated to discovering, rating, and validating the finest Web3 projects, we require your input in determining if Project
                 Orbofi AI meets the necessary criteria to be validated on the Magic Store, Web3 App Store.
@@ -219,6 +254,8 @@ export default function ViewPoll() {
                     </div>
                 </div>
 
+
+         
 
 
                 <div className={"vote_block"}>
