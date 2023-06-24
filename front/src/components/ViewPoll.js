@@ -28,7 +28,7 @@ export default function ViewPoll() {
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
 
-    const [showResult,setShowResult] = useState(false);
+    const [showResultStatus,setShowResultStatus] = useState(false);
 
 
 
@@ -256,7 +256,6 @@ export default function ViewPoll() {
 
 
          
-
 
                 <div className={"vote_block"}>
                     <div className={"vote_button"}>
