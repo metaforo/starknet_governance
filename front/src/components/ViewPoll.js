@@ -8,7 +8,7 @@ import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
 import axios from "axios";
 import {connect} from "@argent/get-starknet";
-import {Contract} from "starknet";
+import {Contract,Provider} from "starknet";
 import contractAbi from "../abis/main_abi.json";
 import { useParams } from "react-router-dom";
 import eventBus from "./event";
@@ -28,7 +28,7 @@ export default function ViewPoll() {
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
 
-    const [showResult,setShowResult] = useState(false);
+    // const [showResult,setShowResult] = useState(false);
 
 
 
@@ -110,11 +110,24 @@ export default function ViewPoll() {
 
     }
 
+    async function showBlockNum(){
+        try{
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            const result =  await  contract.show_block_number();
+            console.log(parseInt(result));
+            return parseInt(result);
+        }
+        catch(error){
+            console.log(error)
+            return 0;
+        }
+    }
+
 
     async function vote(proposalId,optionId){
         try{
-
-            await connectWallet();
+           await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
             const resp = await contract.vote(proposalId,optionId);
@@ -140,7 +153,7 @@ export default function ViewPoll() {
     // }, [someId]);
 
     useEffect( () => {
-        // connectWallet()
+        connectWallet()
         // showResult(params.id)
         // eventBus.emit('showVote',params.id);
 
@@ -259,11 +272,11 @@ export default function ViewPoll() {
 
 
                 <div className={"vote_block"}>
-                    <div className={"vote_button"}>
+                    <div className={"vote_button"} onClick={()=>vote(2,1)}>
                         Vote
                     </div>
 
-                    <div className={"show_result"}>
+                    <div className={"show_result"} onClick={()=>showResult(2)}>
                         Show Result
                     </div>
                 </div>
