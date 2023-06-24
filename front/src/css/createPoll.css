@@ -327,3 +327,7 @@ body{
   width: 50px;
   height: 100%;
 }
+
+.clickable{
+  cursor: pointer;
+}
