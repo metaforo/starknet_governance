@@ -8,7 +8,7 @@ import check from '../icons/check.png'
 import uncheck from '../icons/uncheck.png'
 import axios from "axios";
 import {connect} from "@argent/get-starknet";
-import {Contract} from "starknet";
+import {Contract,Provider} from "starknet";
 import contractAbi from "../abis/main_abi.json";
 import { useParams } from "react-router-dom";
 import eventBus from "./event";
@@ -27,6 +27,7 @@ export default function ViewPoll() {
     const [provider, setProvider] = useState('');
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
+
 
     const [showResultStatus,setShowResultStatus] = useState(false);
 
@@ -115,11 +116,24 @@ export default function ViewPoll() {
 
     }
 
+    async function showBlockNum(){
+        try{
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            const result =  await  contract.show_block_number();
+            console.log(parseInt(result));
+            return parseInt(result);
+        }
+        catch(error){
+            console.log(error)
+            return 0;
+        }
+    }
+
 
     async function vote(proposalId,optionId){
         try{
-
-            await connectWallet();
+           await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, provider);
 
             const resp = await contract.vote(proposalId,optionId);
@@ -145,7 +159,14 @@ export default function ViewPoll() {
     // }, [someId]);
 
     useEffect( () => {
-        // connectWallet()
+
+        window.onload=function (){
+            connectWallet()
+            renderVote('aa');
+
+            showResult(2);
+        }
+
         // showResult(params.id)
         // eventBus.emit('showVote',params.id);
 
@@ -157,7 +178,7 @@ export default function ViewPoll() {
         //     });
 
 
-        renderVote('aa');
+
 
     }, [])
 
@@ -319,7 +340,7 @@ export default function ViewPoll() {
                 checkStatus.map( (item,id) =>
                     (
 
-                        <div className={"view_poll_result_options_block"}>
+                        <div key={id} className={"view_poll_result_options_block"}>
                             <div className={"view_poll_result_options"}>
 
                                 <div className={"view_poll_result_options_content"}>
@@ -359,7 +380,6 @@ export default function ViewPoll() {
                                 'Return Vote'
 
                         }
-
                     </div>
                 </div>
 

@@ -169,6 +169,41 @@ export default function CreatePoll() {
 
     }
 
+    async function showBlockNum(){
+        try{
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            const result =  await  contract.show_block_number();
+            return parseInt(result);
+        }
+        catch(error){
+            console.log(error)
+            return 0;
+        }
+    }
+
+
+    async function createProposalNft(optionCount,metadataUrl,votingEndBlock,voterList){
+        try{
+            await connectWallet();
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            const metadataUrl1 =  metadataUrl.substring(0,30)
+            const metadataUrl2 =  metadataUrl.substring(30)
+            const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
+            await provider.waitForTransaction(resp.transaction_hash);
+
+            const proposal_id = await contract.get_proposal_id(address,metadataUrl1,metadataUrl2);
+            console.log('proposal_id',parseInt(proposal_id))
+
+            return parseInt(proposal_id);
+        }
+        catch(error){
+            console.log(error);
+            return 0;
+        }
+    }
+
+
 
 
     async function createProposal(optionCount,metadataUrl,votingEndBlock,voterList){
