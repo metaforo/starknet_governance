@@ -86,6 +86,8 @@ export default function ViewPoll() {
                 setIsConnected(true);
             }
 
+            return starknet;
+
         }
         catch(error){
             console.log(error)
@@ -130,16 +132,17 @@ export default function ViewPoll() {
 
             // console.log(poolBalanceTokenB);
 
-                //await connectWallet();
+                const connect =  await connectWallet();
 
                 const contract     = new Contract(contractAbi, contractAddress, dp);
                 const vote_data    =  await  contract.get_proposal(proposalId);
                 const vote_result  =  await  contract.show_vote_result(proposalId);
-                // const vote_history =  await  contract.show_vote_history(proposalId,address);
+                // console.log(connect);
+                const vote_history =  await  contract.show_vote_history(proposalId,connect.selectedAddress);
 
                 m["vote_data"]   = arr2Str(vote_data);
                 m["vote_result"] = arr2Int(vote_result);
-                // m["vote_history"] = vote_history;
+                m["vote_history"] = parseInt(vote_history);
                 console.log(m);
 
                 renderVote( toStr (BigInt( m["vote_data"][2])) + toStr(BigInt( m["vote_data"][3])) );
