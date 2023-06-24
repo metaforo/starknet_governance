@@ -361,7 +361,7 @@ export default function ViewPoll() {
                 }
 
                 <div className={"vote_block"}>
-                    <div className={"vote_button"} onClick={clickVote}>
+                    <div className={"vote_button clickable"} onClick={clickVote}>
                         Vote
                     </div>
 

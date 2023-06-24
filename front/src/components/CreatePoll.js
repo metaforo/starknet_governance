@@ -32,6 +32,9 @@ export default function CreatePoll() {
     const [modelOpen, setModelOpen] = useState(false);
     const [loading, setLoading] = useState('Loading...');
 
+    const [caddress, setCaddresse] = useState('');
+    const [selector  , setSelector] = useState('');
+
     // const mask = mui.createMask(callback);//callback为用户点击蒙版时自动执行的回调；
     // mask.show();//显示遮罩
     // mask.close();//关闭遮罩
@@ -121,7 +124,7 @@ export default function CreatePoll() {
 
 
 
-    function submit(){
+    async function submit(){
 
 
         // const  optionCount,metadataUrl,votingEndBlock,voterList;
@@ -129,41 +132,66 @@ export default function CreatePoll() {
         setModelOpen(true);
 
 
-        const data = {
-            title: title,
-            content: content,
-            blockNumber: blockNumber,
-            options: options,
-            whiteLists: whiteLists,
-        };
+        await showBlockNum().then((response) => {
 
-        const optionCount = options.length;
+            var create_at = 0;
+            const data = {
+                title: title,
+                content: content,
+                blockNumber: blockNumber,
+                options: options,
+                caddress: caddress,
+                selector: selector,
+                whiteLists: whiteLists,
+                type : value,
+                createAt: create_at
+            };
 
-        const form = new FormData();
-        form.append('data',JSON.stringify(data));
+            const optionCount = options.length;
 
-        // axios.get('https://test.metaforo.io/api/feed/groups')
-        //     .then(response =>
-        //         console.log(response)
-        //     );
+            const form = new FormData();
+            form.append('data',JSON.stringify(data));
+
+            // axios.get('https://test.metaforo.io/api/feed/groups')
+            //     .then(response =>
+            //         console.log(response)
+            //     );
 
 
-        axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
-            .then((response) => {
-                // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
-                const metadataUrl =  response.data.data.tx_id ;
-                // eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
+            axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
+                .then((response) => {
+                    // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+                    const metadataUrl =  response.data.data.tx_id ;
+                    // eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
 
-                createProposal(optionCount, metadataUrl, parseInt(blockNumber), whiteLists).then((proposal_id)=>{
-                    console.log(proposal_id);
+                    if(value === 0){
+                        createProposalNft(optionCount, metadataUrl, parseInt(blockNumber),caddress,selector).then((proposal_id)=>{
+                            console.log(proposal_id);
 
-                    var currentUrl = window.location.href;
-                    currentUrl =  'view result in : ' + currentUrl.replace('create','view') + '/' + proposal_id;
-                    setLoading(currentUrl);
+                            var currentUrl = window.location.href;
+                            currentUrl =  currentUrl.replace('create','view') + '/' + proposal_id;
+                            setLoading(currentUrl);
 
-                })
+                        })
+                    } else {
+                        createProposal(optionCount, metadataUrl, parseInt(blockNumber), whiteLists).then((proposal_id)=>{
+                            console.log(proposal_id);
 
-            });
+                            var currentUrl = window.location.href;
+                            currentUrl =   currentUrl.replace('create','view') + '/' + proposal_id;
+                            setLoading(currentUrl);
+
+                        })
+                    }
+
+
+
+
+                });
+
+        });
+
+
 
 
 
@@ -244,6 +272,14 @@ export default function CreatePoll() {
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
+
+        if(newValue!==0){
+            setSelector('');
+            setCaddresse('');
+        } else {
+            setWhiteLists(['']);
+        }
+
     };
 
     function a11yProps(index) {
@@ -282,6 +318,8 @@ export default function CreatePoll() {
         );
     }
 
+
+
     return (
         <div className={"create_poll"}>
 
@@ -303,6 +341,10 @@ export default function CreatePoll() {
                     p: 4,
                 }}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {
+                            loading !== 'Loading...' &&
+                               <span> view at <a href={loading}></a> </span>
+                        }
                         {loading}
                     </Typography>
 
@@ -401,7 +443,27 @@ export default function CreatePoll() {
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
-                Item One
+
+                <div className={"create_title"}>
+                    Caddress
+                </div>
+
+                <TextField fullWidth value={caddress}
+                           onChange={(event: React.ChangeEvent) => {
+                               setCaddresse(event.target.value);
+                           }}
+                />
+
+                <div className={"create_title"}>
+                    Selector
+                </div>
+
+                <TextField fullWidth value={selector}
+                           onChange={(event: React.ChangeEvent) => {
+                               setSelector(event.target.value);
+                           }}
+                />
+
             </TabPanel>
             <TabPanel value={value} index={1}>
 
@@ -445,7 +507,7 @@ export default function CreatePoll() {
 
 
 
-            <div className={"submit"}  onClick={submit}>
+            <div className={"submit clickable"}  onClick={submit}>
                 Submit
             </div>
 
