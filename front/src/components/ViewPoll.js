@@ -28,9 +28,15 @@ export default function ViewPoll() {
     const [address, setAddress] = useState('');
     const [isConnected, setIsConnected] = useState(false);
 
-    // const [showResult,setShowResult] = useState(false);
 
+    const [showResultStatus,setShowResultStatus] = useState(false);
 
+    const [voteResult,setVoteResult] = useState(['100','100']);
+    const [voteResultPer,setVoteResultPer] = useState(['50','50']);
+
+    const [pollStatus, setPollStatus] = useState(true)
+    const [votesCount, setVotesCount] = useState(0)
+    const [closeAt, setCloseAt] = useState(999999999)
 
     // persist state on reload
 
@@ -153,7 +159,14 @@ export default function ViewPoll() {
     // }, [someId]);
 
     useEffect( () => {
-        connectWallet()
+
+        window.onload=function (){
+            connectWallet()
+            renderVote('aa');
+
+            showResult(2);
+        }
+
         // showResult(params.id)
         // eventBus.emit('showVote',params.id);
 
@@ -165,7 +178,7 @@ export default function ViewPoll() {
         //     });
 
 
-        renderVote('aa');
+
 
     }, [])
 
@@ -191,21 +204,62 @@ export default function ViewPoll() {
 
     }
 
+    function clickVote(){
+        showResult(2);
+    }
+
     function showVote(id, ar){
 
     }
 
+    function click(id, boolean){
+
+
+        const temp = [...checkStatus];
+
+        temp[id] = boolean;
+        //
+        setCheckStatus(temp);
+
+        console.log(checkStatus)
+
+    }
+
+
+    function clickBtn(id){
+
+        if(checkStatus[id]){
+
+            return     <img onClick={ () => click(id,false)  } src={check} className={"clickable"} style={{'width':'20px'}} />;
+
+        } else {
+            return     <img onClick={ () => click(id,true)  }  src={uncheck}  className={"clickable"} style={{'width':'20px'}} />;
+        }
+
+
+    }
 
     return (
         <div className={"create_poll"}>
 
-            <div className={"poll_process"}>
-                Poll in Progress
-            </div>
+            {
+                pollStatus &&
+                <div className={"poll_process"}>
+                    Poll in Progress
+                </div>
+            }
+
+            {
+                !pollStatus &&
+                <div className={"poll_process"}>
+                    Poll closed
+                </div>
+            }
+
+
 
             <div className={"view_poll_title"}>
                 {title}
-                Magic Square Community Validation: Orbofi AI on the Magic Store Voting
             </div>
 
             <div className={"time_block"}>
@@ -220,14 +274,6 @@ export default function ViewPoll() {
 
             <div className={"view_poll_content"}>
                 {content}
-                Welcome to the Magic Square Community Validation for Project Orbofi AI on the Magic Store Voting. As a platform
-                dedicated to discovering, rating, and validating the finest Web3 projects, we require your input in determining if Project
-                Orbofi AI meets the necessary criteria to be validated on the Magic Store, Web3 App Store.
-
-                Only users with a fully validated MagicID account on the Magic Store (connected wallet, verified email, and selected username) can participate in the voting process.If you have not completed these steps, please visit the Magic Store to do so before casting your vote.
-
-                For further discussion on Project Orbofi AI validation, join our Discord Server to connect with fellow community members.
-                For detailed information on Project Orbofi AI, please visit the project page on the Magic Store here.
             </div>
 
             <div className={"view_poll_result"}>
@@ -235,7 +281,10 @@ export default function ViewPoll() {
                     {/*Votes 216    Closed at 123123  ·  Current is 1231321*/}
                     <div>
                         <span className={"view_poll_result_title_color_1"}>Votes </span>
-                        <span className={"view_poll_result_title_color_2"}>216 </span>
+                        <span className={"view_poll_result_title_color_2"}>{votesCount} </span>
+                        <span> · </span>
+                        <span className={"view_poll_result_title_color_1"}>Closed at </span>
+                        <span className={"view_poll_result_title_color_2"}>{closeAt} </span>
                         <span> · </span>
                     </div>
 
@@ -268,16 +317,69 @@ export default function ViewPoll() {
                 </div>
 
 
-         
+                {   showResultStatus &&
+                    checkStatus.map( (item,id) =>
+                        (
 
+                            <div key={id} className={"view_poll_result_options_block"}>
+                                <div className={"view_poll_result_options"}>
+                                    <div className={"view_poll_result_options_content"}>
+                                        {options[id]}
+                                    </div>
+
+                                    {clickBtn(id)}
+                                </div>
+                            </div>
+                        )
+                    )
+                }
+
+
+
+                {   !showResultStatus &&
+                checkStatus.map( (item,id) =>
+                    (
+
+                        <div key={id} className={"view_poll_result_options_block"}>
+                            <div className={"view_poll_result_options"}>
+
+                                <div className={"view_poll_result_options_content"}>
+                                    {options[id]}
+                                </div>
+
+                                <div className={"view_poll_persent"}>
+                                    {voteResult[id]} ({voteResultPer[id]}%)
+                                </div>
+                            </div>
+                            <div className={"view_poll_color"} style={{'width':voteResultPer[id]+'%'}}>
+
+                            </div>
+                        </div>
+
+                    )
+                )
+                }
 
                 <div className={"vote_block"}>
-                    <div className={"vote_button"} onClick={()=>vote(2,1)}>
+                    <div className={"vote_button"} onClick={clickVote}>
                         Vote
                     </div>
 
-                    <div className={"show_result"} onClick={()=>showResult(2)}>
-                        Show Result
+                    <div className={"show_result clickable"} onClick={()=>{
+                        setShowResultStatus(!showResultStatus)
+                    }} >
+
+
+                        {
+                            !showResultStatus &&
+                                'Show Result'
+
+                        }
+                        {
+                            showResultStatus &&
+                                'Return Vote'
+
+                        }
                     </div>
                 </div>
 
