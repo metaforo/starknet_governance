@@ -205,7 +205,7 @@ export default function ViewPoll() {
     }
 
     function clickVote(){
-
+        showResult(2);
     }
 
     function showVote(id, ar){
