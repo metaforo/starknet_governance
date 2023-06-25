@@ -435,8 +435,8 @@ export default function ViewPoll() {
                 </div>
             </div>
 
-            <div className={"view_poll_content"}>
-                {content}
+            <div className={"view_poll_content"}  dangerouslySetInnerHTML={{__html:content}}>
+
             </div>
 
             <div className={"view_poll_result"}>
