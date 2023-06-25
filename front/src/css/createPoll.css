@@ -278,6 +278,10 @@ body{
   position: relative;
 }
 
+.view_poll_result_options_block.select_vote{
+  border: 0px solid #7845F6;
+}
+
 .view_poll_result_options{
   margin: 10px 16px;
   display: flex;
@@ -328,6 +332,21 @@ body{
   height: 100%;
 }
 
+.select_vote .view_poll_color{
+  position: absolute;
+  border-radius: 8px 0px 0px 8px;
+  border-top: 1px solid #7845F6;
+  border-bottom: 1px solid #7845F6;
+  border-left: 1px solid #7845F6;
+  background: #EAE1FF;
+  width: 50px;
+  height: 100%;
+}
+
 .clickable{
   cursor: pointer;
+}
+
+.view_poll_persent{
+  z-index: 1;
 }

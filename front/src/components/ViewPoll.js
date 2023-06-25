@@ -14,7 +14,7 @@ import { useParams } from "react-router-dom";
 import eventBus from "./event";
 
 const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
-
+/* global BigInt */
 export default function ViewPoll() {
 
     const [title, setTitle] = useState('');
@@ -32,11 +32,23 @@ export default function ViewPoll() {
     const [showResultStatus,setShowResultStatus] = useState(false);
 
     const [voteResult,setVoteResult] = useState(['100','100']);
+
+    const [voteDetail, setVoteDetail] = useState([
+        {
+            option : '',
+            count : '0',
+            status : false,
+            per : '0',
+        }
+    ])
+
     const [voteResultPer,setVoteResultPer] = useState(['0','0']);
 
     const [pollStatus, setPollStatus] = useState(true)
     const [votesCount, setVotesCount] = useState(0)
     const [closeAt, setCloseAt] = useState(999999999)
+
+    const [voted, setVoted] = useState(0)
 
     // persist state on reload
     const dp = new Provider({
@@ -149,24 +161,71 @@ export default function ViewPoll() {
 
                 setVoteResult(m["vote_result"]);
 
+                var temp = [];
+
                 var total = 0;
 
                 m["vote_result"].map( (item,id) => {
                     total += item;
                 })
-                if(total > 0){
-                    var temp_per = [];
 
-                    m["vote_result"].map( (item,id) => {
+                var data =  {
+                    option : '111',
+                    count : '0',
+                    status : false,
+                    per : 0,
+                }
 
-                        temp_per.push( (Number(item)/Number(total) * 100).toFixed(2).toString() )
+                for (let i = 0; i < m["vote_result"].length; i++) {
 
-                    })
+                    data =  {
+                        option : '111',
+                        count : m["vote_result"][i].toString(),
+                        status : false,
+                        per : (Number(m["vote_result"][i])/Number(total) * 100).toFixed(2).toString(),
+                    }
 
-                    setVoteResult(setVoteResultPer)
+                    console.log( i ,m["vote_result"][i])
+                    console.log('adddata',data);
+                    temp.push(
+                        data
+                    )
+
+                    temp[i].count = m["vote_result"][i].toString();
+                    // console.log(temp)
                 }
 
 
+            // m["vote_result"].map( (item,id) => {
+            //         total += item;
+            //
+            //         // console.log(temp)
+            //         // temp[id].count = item.toString();
+            //         // temp[id].status = false
+            //     })
+            //     if(total > 0){
+            //         var temp_per = [];
+            //
+            //         m["vote_result"].map( (item,id) => {
+            //
+            //             // temp_per.push( (Number(item)/Number(total) * 100).toFixed(2).toString() )
+            //
+            //
+            //             temp[id].per = (Number(item)/Number(total) * 100).toFixed(2).toString();
+            //         })
+            //
+            //         setVoteResult(setVoteResultPer)
+            //     }
+
+                setVotesCount(total);
+                setVoted(m["vote_history"]);
+
+                if(m["vote_history"] > 0){
+                    temp[m["vote_history"]-1].status = true;
+                    setShowResultStatus(true);
+                }
+                
+                setVoteDetail(temp);
 
 
                 return m;
@@ -292,7 +351,20 @@ export default function ViewPoll() {
     }
 
     function clickVote(){
-        showResult(2);
+        // showResult(2);
+
+
+        checkStatus.map( (item,id) => {
+
+            if(item === true){
+                vote(params.id, id +1 )
+
+                return;
+            }
+
+        })
+
+
     }
 
     function showVote(id, ar){
@@ -377,34 +449,9 @@ export default function ViewPoll() {
 
                 </div>
 
-                <div className={"view_poll_result_options_block"}>
-                    <div className={"view_poll_result_options"}>
-                        <div className={"view_poll_result_options_content"}>
-                            Cabo
-                        </div>
-
-                        <img src={check} style={{'width':'20px'}} />
-                    </div>
-                </div>
-
-                <div className={"view_poll_result_options_block"}>
-                    <div className={"view_poll_result_options"}>
-
-                        <div className={"view_poll_result_options_content"}>
-                            Cabo
-                        </div>
-
-                        <div className={"view_poll_persent"}>
-                            411 (17.6%)
-                        </div>
-                    </div>
-                    <div className={"view_poll_color"}>
-
-                    </div>
-                </div>
 
 
-                {   showResultStatus &&
+                {   !showResultStatus &&
                     checkStatus.map( (item,id) =>
                         (
 
@@ -423,11 +470,11 @@ export default function ViewPoll() {
 
 
 
-                {   !showResultStatus &&
-                checkStatus.map( (item,id) =>
+                {   showResultStatus &&
+                voteDetail.map( (item,id) =>
                     (
 
-                        <div key={id} className={"view_poll_result_options_block"}>
+                        <div key={id+voteResult[id]+voteResultPer[id]} className={ id === (voted - 1) ? "view_poll_result_options_block select_vote" : "view_poll_result_options_block" }>
                             <div className={"view_poll_result_options"}>
 
                                 <div className={"view_poll_result_options_content"}>
@@ -435,10 +482,10 @@ export default function ViewPoll() {
                                 </div>
 
                                 <div className={"view_poll_persent"}>
-                                    {voteResult[id]} ({voteResultPer[id]}%)
+                                    {item.count} ({item.per}%)
                                 </div>
                             </div>
-                            <div className={"view_poll_color"} style={{'width':voteResultPer[id]+'%'}}>
+                            <div className={"view_poll_color"} style={{'width':item.per+'%'}}>
 
                             </div>
                         </div>
@@ -446,29 +493,32 @@ export default function ViewPoll() {
                     )
                 )
                 }
+                {
+                    voted === 0 &&
+                    <div className={"vote_block"}>
+                        <div className={"vote_button clickable"} onClick={clickVote}>
+                            Vote
+                        </div>
 
-                <div className={"vote_block"}>
-                    <div className={"vote_button clickable"} onClick={clickVote}>
-                        Vote
-                    </div>
-
-                    <div className={"show_result clickable"} onClick={()=>{
-                        setShowResultStatus(!showResultStatus)
-                    }} >
+                        <div className={"show_result clickable"} onClick={()=>{
+                            setShowResultStatus(!showResultStatus)
+                        }} >
 
 
-                        {
-                            !showResultStatus &&
+                            {
+                                !showResultStatus &&
                                 'Show Result'
 
-                        }
-                        {
-                            showResultStatus &&
+                            }
+                            {
+                                showResultStatus &&
                                 'Return Vote'
 
-                        }
+                            }
+                        </div>
                     </div>
-                </div>
+                }
+
 
 
             </div>
