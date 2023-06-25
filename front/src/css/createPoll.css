@@ -99,7 +99,7 @@ body{
   flex-grow: 0;
 
 
-  margin-top: 10px;
+  margin-top: 30px;
   margin-bottom: 10px;
 }
 
@@ -149,7 +149,8 @@ body{
 
   background: #7845F6;
   border-radius: 8px;
-
+  color: white;
+  font-weight: 900;
 }
 
 .m-5{

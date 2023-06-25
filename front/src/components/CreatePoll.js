@@ -22,7 +22,9 @@ export default function CreatePoll() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [blockNumber, setBlockNumber] = useState('');
+    const [currentBlockNumber, setCurrentBlockNumber] = useState(0);
     const [options, setOptions] = useState(['','']);
+    const [transactionHash, setTransactionHash] = useState('');
     const [whiteLists, setWhiteLists] = useState(['']);
     const [value, setValue] = useState(0);
     const [provider, setProvider] = useState('');
@@ -39,16 +41,9 @@ export default function CreatePoll() {
     // mask.show();//显示遮罩
     // mask.close();//关闭遮罩
 
-
-    useEffect(() => {
-        connectWallet();
-        // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
-    }, [])
-
-
     const connectWallet = async() => {
         try{
-            console.log(isConnected);
+            console.log('isConnected: ', isConnected);
             if ( !isConnected ){
                 // let the user choose a starknet wallet
                 const starknet = await connect();
@@ -68,6 +63,20 @@ export default function CreatePoll() {
         }
     }
 
+    useEffect(() => {
+        connectWallet();
+        // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
+    }, [isConnected])
+
+
+    useEffect(() => {
+        if(isConnected){
+            const contract = new Contract(contractAbi, contractAddress, provider);
+            contract.show_block_number().then((result)=>{
+                setCurrentBlockNumber(parseInt(result));
+            })
+        }
+    }, [isConnected])
 
 
     function optionsChange(id,text){
@@ -130,7 +139,6 @@ export default function CreatePoll() {
 
 
         await showBlockNum().then((response) => {
-
             var create_at = 0;
             const data = {
                 title: title,
@@ -157,7 +165,8 @@ export default function CreatePoll() {
 
             axios.post('https://test-wang.metaforo.io/api/arweave/upload', form)
                 .then((response) => {
-                    // const metadataUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+                    const fullArweaveUrl = 'https://arweave.net/tx/'+ response.data.data.tx_id + '/data.json';
+                    console.log("ArweaveUrl: ", fullArweaveUrl);
                     const metadataUrl =  response.data.data.tx_id ;
                     // eventBus.emit('createVote', optionCount, metadataUrl, parseInt(blockNumber), whiteLists)
 
@@ -216,6 +225,7 @@ export default function CreatePoll() {
             const metadataUrl2 =  metadataUrl.substring(30);
 
             const resp = await contract.create_new_proposal_nft(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,cAddress,selector);
+            setTransactionHash((resp.transaction_hash));
             console.log(resp.transaction_hash);
             console.log(address);
 
@@ -241,6 +251,7 @@ export default function CreatePoll() {
             const metadataUrl1 =  metadataUrl.substring(0,30)
             const metadataUrl2 =  metadataUrl.substring(30)
             const resp = await contract.create_new_proposal(optionCount,metadataUrl1,metadataUrl2,votingEndBlock,voterList);
+            setTransactionHash((resp.transaction_hash));
             await provider.waitForTransaction(resp.transaction_hash);
 
             const proposal_id = await contract.get_proposal_id(address,metadataUrl1,metadataUrl2);
@@ -354,9 +365,9 @@ export default function CreatePoll() {
                     Add New Poll
                 </div>
 
-                <div className={"connect_wallet"} onClick={connectWallet}>
-                    Connect Wallet
-                </div>
+                {/*<div className={"connect_wallet"} onClick={connectWallet}>*/}
+                {/*    Connect Wallet*/}
+                {/*</div>*/}
             </div>
 
 
@@ -418,12 +429,14 @@ export default function CreatePoll() {
 
             <div className={"add_block"} onClick={addOption} >
                 <img src={add} style={{'width':'16px'}} />
-                <div className={"add_text"}>Add Option</div>
+                <div className={"add_text"}  style={{
+                    marginLeft: 10,
+                }}>Add Option</div>
             </div>
 
 
             <div className={"create_title"}>
-                Block Number
+                Block Number {currentBlockNumber > 0 && <>(Current Block Number is {currentBlockNumber})</>}
             </div>
 
             <TextField fullWidth value={blockNumber}
@@ -432,17 +445,21 @@ export default function CreatePoll() {
                        }}
             />
 
-
+            <div className={"create_title"} >
+                Voting Strategies
+            </div>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChange}>
                     <Tab label="Token or Nft" {...a11yProps(0)} />
                     <Tab label="White Lists" {...a11yProps(1)} />
                 </Tabs>
             </Box>
-            <TabPanel value={value} index={0}>
+            <TabPanel value={value} index={0} style={{width: 600}}>
 
-                <div className={"create_title"}>
-                    Caddress
+                <div className={"create_title"}  style={{
+                    marginTop: 10,
+                }}>
+                    Contract Address
                 </div>
 
                 <TextField fullWidth value={caddress}
@@ -452,7 +469,7 @@ export default function CreatePoll() {
                 />
 
                 <div className={"create_title"}>
-                    Selector
+                    Function Selector
                 </div>
 
                 <TextField fullWidth value={selector}
@@ -462,10 +479,12 @@ export default function CreatePoll() {
                 />
 
             </TabPanel>
-            <TabPanel value={value} index={1}>
+            <TabPanel value={value} index={1} style={{width: 600}}>
 
-                <div className={"create_title"}>
-                    White Lists (option)
+                <div className={"create_title"} style={{
+                    marginTop: 10,
+                }}>
+                    Who Can Vote
                 </div>
 
                 {
@@ -497,15 +516,21 @@ export default function CreatePoll() {
 
                 <div className={"add_block"} onClick={addWhiteList} >
                     <img src={add} style={{'width':'16px'}} />
-                    <div className={"add_text"}>Add White List</div>
+                    <div className={"add_text"} style={{
+                        marginLeft: 10,
+                    }}>Add White List</div>
                 </div>
 
             </TabPanel>
 
 
-
-            <div className={"submit clickable"}  onClick={submit}>
+            <div style={{display: 'flex', alignItems: 'center',}}>
+            <div className={"submit clickable"}  onClick={submit} variant={'contained'}>
                 Submit
+            </div>
+                <div style={{marginLeft: 20}}>
+                    {transactionHash.length > 0 && <a href={`https://testnet.starkscan.co/tx/${transactionHash}`}>Show on StarkScan</a>}
+                </div>
             </div>
 
         </div>

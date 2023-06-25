@@ -46,7 +46,7 @@ export default function ViewPoll() {
 
     const [pollStatus, setPollStatus] = useState(true)
     const [votesCount, setVotesCount] = useState(0)
-    const [closeAt, setCloseAt] = useState(999999999)
+    const [closeAt, setCloseAt] = useState(0)
 
     const [voted, setVoted] = useState(0)
 
@@ -178,11 +178,15 @@ export default function ViewPoll() {
 
                 for (let i = 0; i < m["vote_result"].length; i++) {
 
+                    var per = 0;
+                    if (m["vote_result"][i] > 0) {
+                        per = (Number(m["vote_result"][i])/Number(total) * 100);
+                    }
                     data =  {
                         option : '111',
                         count : m["vote_result"][i].toString(),
                         status : false,
-                        per : (Number(m["vote_result"][i])/Number(total) * 100).toFixed(2).toString(),
+                        per : per.toFixed(2).toString(),
                     }
 
                     console.log( i ,m["vote_result"][i])
@@ -330,7 +334,7 @@ export default function ViewPoll() {
 
     function renderVote(url){
 
-        // url = 'https://arweave.net/tx/1z5n0jQ8uancYyJT3BoAKzhy7dyHMa9cCyDSayoQkZQ/data.json';
+        // url = 'https://arweave.net/tx/yFVV91bHcEOcHHlaksvdkSilhUkdRQOWA0znznH8SjY/data.json';
         url = 'https://arweave.net/tx/'+url+'/data.json';
 
 
@@ -441,10 +445,10 @@ export default function ViewPoll() {
                     <div>
                         <span className={"view_poll_result_title_color_1"}>Votes </span>
                         <span className={"view_poll_result_title_color_2"}>{votesCount} </span>
-                        <span> · </span>
-                        <span className={"view_poll_result_title_color_1"}>Closed at </span>
-                        <span className={"view_poll_result_title_color_2"}>{closeAt} </span>
-                        <span> · </span>
+                        {/*<span> · </span>*/}
+                        {/*<span className={"view_poll_result_title_color_1"}>Closed at </span>*/}
+                        {/*<span className={"view_poll_result_title_color_2"}>{closeAt} </span>*/}
+                        {/*<span> · </span>*/}
                     </div>
 
                 </div>
