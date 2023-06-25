@@ -148,8 +148,7 @@ export default function CreatePoll() {
                 caddress: caddress,
                 selector: selector,
                 whiteLists: whiteLists,
-                type : value,
-                createAt: create_at
+                type : value
             };
 
             const optionCount = options.length;

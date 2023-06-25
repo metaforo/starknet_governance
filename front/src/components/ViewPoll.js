@@ -19,7 +19,7 @@ export default function ViewPoll() {
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [blockNumber, setBlockNumber] = useState('');
+    const [blockNumber, setBlockNumber] = useState(0);
     const [options, setOptions] = useState(['','']);
     const [checkStatus, setCheckStatus] = useState([false,false]);
     const [whiteLists, setWhiteLists] = useState(['']);
@@ -231,6 +231,7 @@ export default function ViewPoll() {
                 
                 setVoteDetail(temp);
 
+                showBlockNum();
 
                 return m;
 
@@ -266,7 +267,12 @@ export default function ViewPoll() {
             // await connectWallet();
             const contract = new Contract(contractAbi, contractAddress, dp);
             const result =  await  contract.show_block_number();
-            console.log(parseInt(result));
+            console.log('showBlockNum',parseInt(result));
+
+            setBlockNumber(result);
+
+
+
             return parseInt(result);
         }
         catch(error){
@@ -346,7 +352,7 @@ export default function ViewPoll() {
                 setTitle(response.data.title)
                 setOptions(response.data.options)
                 setContent(response.data.content)
-                setBlockNumber(response.data.blockNumber)
+                setCloseAt(response.data.blockNumber)
                 setWhiteLists(response.data.whiteLists)
 
 
@@ -445,10 +451,12 @@ export default function ViewPoll() {
                     <div>
                         <span className={"view_poll_result_title_color_1"}>Votes </span>
                         <span className={"view_poll_result_title_color_2"}>{votesCount} </span>
-                        {/*<span> · </span>*/}
-                        {/*<span className={"view_poll_result_title_color_1"}>Closed at </span>*/}
-                        {/*<span className={"view_poll_result_title_color_2"}>{closeAt} </span>*/}
-                        {/*<span> · </span>*/}
+                        <span> · </span>
+                        <span className={"view_poll_result_title_color_1"}>Closed at </span>
+                        <span className={"view_poll_result_title_color_2"}>{closeAt} </span>
+                        <span> · </span>
+                        <span className={"view_poll_result_title_color_1"}>Current is </span>
+                        <span className={"view_poll_result_title_color_2"}>{blockNumber.toString()} </span>
                     </div>
 
                 </div>
