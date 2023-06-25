@@ -13,7 +13,7 @@ import eventBus from './event'
 import {connect} from "@argent/get-starknet";
 import {Contract} from "starknet";
 import contractAbi from "../abis/main_abi.json";
-const contractAddress = "0x07dc09c4d1b1a656d7bcbd5c5f0474f97abce1369137a83d80091d74da30a84b";
+const contractAddress = "0x073abfeec458c5b77c8ef1cc726c69c7a6471663af93514052ae6693eee68514";
 
 
 export default function CreatePoll() {
