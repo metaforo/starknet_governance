@@ -41,17 +41,14 @@ export default function CreatePoll() {
 
 
     useEffect(() => {
-        connectWallet().then();
-
+        connectWallet();
         // eventBus.addListener('say',  function (a,b ){ console.log(a,b) } );
-
     }, [])
 
 
     const connectWallet = async() => {
-
         try{
-
+            console.log(isConnected);
             if ( !isConnected ){
                 // let the user choose a starknet wallet
                 const starknet = await connect();
@@ -357,7 +354,7 @@ export default function CreatePoll() {
                     Add New Poll
                 </div>
 
-                <div className={"connect_wallet"}>
+                <div className={"connect_wallet"} onClick={connectWallet}>
                     Connect Wallet
                 </div>
             </div>
