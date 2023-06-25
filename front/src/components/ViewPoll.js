@@ -431,15 +431,15 @@ export default function ViewPoll() {
                 {title}
             </div>
 
-            <div className={"time_block"}>
-                <div className={"time_icon"}>
+            {/*<div className={"time_block"}>*/}
+            {/*    <div className={"time_icon"}>*/}
 
-                </div>
+            {/*    </div>*/}
 
-                <div className={"time_content"}>
-                    0xf432...6740  ·  May 8, 2023
-                </div>
-            </div>
+            {/*    /!*<div className={"time_content"}>*!/*/}
+            {/*    /!*    0xf432...6740  ·  May 8, 2023*!/*/}
+            {/*    /!*</div>*!/*/}
+            {/*</div>*/}
 
             <div className={"view_poll_content"}  dangerouslySetInnerHTML={{__html:content}}>
 

@@ -139,10 +139,11 @@ export default function CreatePoll() {
 
 
         await showBlockNum().then((response) => {
+            var contentRefine = content.replaceAll('\n','<br/>');
             var create_at = 0;
             const data = {
                 title: title,
-                content: content,
+                content: contentRefine,
                 blockNumber: blockNumber,
                 options: options,
                 caddress: caddress,
