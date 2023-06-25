@@ -456,7 +456,7 @@ export default function ViewPoll() {
 
 
                 {   !showResultStatus &&
-                    checkStatus.map( (item,id) =>
+                voteDetail.map( (item,id) =>
                         (
 
                             <div key={id} className={"view_poll_result_options_block"}>
